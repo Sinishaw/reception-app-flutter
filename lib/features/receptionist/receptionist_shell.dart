@@ -6,6 +6,8 @@ import '../dashboard/dashboard_screen.dart';
 import '../visit_log/visit_log_screen.dart';
 import '../appointments/appointments_screen.dart';
 import '../settings/settings_screen.dart';
+import '../pairing/station_provider.dart';
+import '../../shared/repositories/providers.dart';
 
 class ReceptionistShell extends ConsumerStatefulWidget {
   const ReceptionistShell({super.key});
@@ -237,8 +239,25 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                       // Header Actions (Digital Clock & Settings)
                       Row(
                         children: [
+                          // Tablet Sync/Refresh Button
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow,
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.tablet_mac_rounded,
+                                color: AppColors.secondary,
+                                size: 22,
+                              ),
+                              tooltip: 'Sync & Refresh Tablet',
+                              onPressed: _syncTablet,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
                           _buildHeaderClock(),
-                          const SizedBox(width: 24),
+                          const SizedBox(width: 16),
                           Container(
                             decoration: BoxDecoration(
                               color: AppColors.surfaceContainerLow,
@@ -315,6 +334,50 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
         ),
       ),
     );
+  }
+
+  Future<void> _syncTablet() async {
+    final stationId = ref.read(stationIdProvider);
+    if (stationId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please configure a Station ID first in Settings.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      // Force refresh the tablet by clearing the session to idle
+      await ref.read(sessionRepositoryProvider).clearSession(stationId);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.sync_rounded, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Tablet successfully synchronized & reset to idle screen!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to sync tablet: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildHeaderClock() {
