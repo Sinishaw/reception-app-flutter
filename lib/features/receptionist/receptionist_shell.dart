@@ -18,9 +18,8 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const CheckInForm(),
-    const AppointmentsScreen(),
     const VisitLogScreen(),
+    const AppointmentsScreen(),
     const DashboardScreen(),
     const SettingsScreen(),
   ];
@@ -36,7 +35,7 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
-            onPressed: () => setState(() => _selectedIndex = 4),
+            onPressed: () => setState(() => _selectedIndex = 3),
           ),
         ],
       ),
@@ -52,9 +51,8 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
             unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
             selectedLabelTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             destinations: const [
-              NavigationRailDestination(icon: Icon(Icons.person_add), label: Text('New Visit')),
+              NavigationRailDestination(icon: Icon(Icons.people), label: Text('Visitors')),
               NavigationRailDestination(icon: Icon(Icons.calendar_today), label: Text('Appointments')),
-              NavigationRailDestination(icon: Icon(Icons.history), label: Text('Visit Log')),
               NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text('Dashboard')),
               NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
             ],

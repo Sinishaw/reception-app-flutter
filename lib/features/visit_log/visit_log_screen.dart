@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../shared/repositories/providers.dart';
 import '../../shared/models/visit.dart';
 import '../../shared/models/staff.dart';
+import '../check_in/check_in_form.dart';
 
 class VisitLogScreen extends ConsumerStatefulWidget {
   const VisitLogScreen({super.key});
@@ -50,11 +51,31 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Visit History', style: Theme.of(context).textTheme.headlineMedium),
-              OutlinedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.download),
-                label: const Text('Export to CSV'),
+              Text('Visitors', style: Theme.of(context).textTheme.headlineMedium),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddVisitorDialog(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Visitor'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.download),
+                    label: const Text('Export to CSV'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -582,6 +603,37 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
+    );
+  }
+
+  void _showAddVisitorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1050, maxHeight: 780),
+            child: Stack(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 24.0),
+                  child: CheckInForm(),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
