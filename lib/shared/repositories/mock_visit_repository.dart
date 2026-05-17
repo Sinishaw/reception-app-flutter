@@ -47,4 +47,12 @@ class MockVisitRepository implements VisitRepository {
       _visitsSubject.add([...current]);
     }
   }
+
+  @override
+  Future<void> deleteVisit(String visitId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final current = _visitsSubject.value;
+    current.removeWhere((v) => v.id == visitId);
+    _visitsSubject.add([...current]);
+  }
 }
