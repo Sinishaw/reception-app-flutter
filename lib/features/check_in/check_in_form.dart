@@ -6,12 +6,14 @@ import '../../shared/models/station.dart';
 import '../../shared/models/staff.dart';
 import '../../shared/repositories/providers.dart';
 import '../../shared/models/visit.dart';
+import '../../shared/models/appointment.dart';
 import '../notifications/notification_service.dart';
 import '../pairing/station_provider.dart';
 import '../tablet_display/session_provider.dart';
 
 class CheckInForm extends ConsumerStatefulWidget {
-  const CheckInForm({super.key});
+  final Appointment? initialAppointment;
+  const CheckInForm({super.key, this.initialAppointment});
 
   @override
   ConsumerState<CheckInForm> createState() => _CheckInFormState();
@@ -27,8 +29,22 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
   Staff? _selectedHost;
   String _purpose = 'Meeting';
   String _duration = '1 hr';
+  String? _appointmentId;
 
   bool _isWaitingForSignature = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialAppointment != null) {
+      _nameController.text = widget.initialAppointment!.visitorName;
+      _phoneController.text = widget.initialAppointment!.visitorPhone;
+      _companyController.text = widget.initialAppointment!.visitorCompany ?? '';
+      _purpose = widget.initialAppointment!.purpose;
+      _notesController.text = widget.initialAppointment!.notes ?? '';
+      _appointmentId = widget.initialAppointment!.id;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,15 +219,24 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
   Widget _buildHostDropdown() {
     final staffAsync = ref.watch(staffListProvider);
     return staffAsync.when(
-      data: (staff) => DropdownButtonFormField<Staff>(
-        value: _selectedHost,
-        decoration: const InputDecoration(labelText: 'Host / Person being visited', border: OutlineInputBorder()),
-        items: staff.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
-        onChanged: _isWaitingForSignature ? null : (v) => setState(() => _selectedHost = v),
-        validator: (v) => v == null ? 'Required' : null,
-      ),
+      data: (staff) {
+        if (_selectedHost == null && widget.initialAppointment != null && staff.isNotEmpty) {
+          try {
+            _selectedHost = staff.firstWhere((s) => s.id == widget.initialAppointment!.hostId);
+          } catch (_) {
+            _selectedHost = staff.first;
+          }
+        }
+        return DropdownButtonFormField<Staff>(
+          value: _selectedHost,
+          decoration: const InputDecoration(labelText: 'Host / Person being visited', border: OutlineInputBorder()),
+          items: staff.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
+          onChanged: _isWaitingForSignature ? null : (v) => setState(() => _selectedHost = v),
+          validator: (v) => v == null ? 'Required' : null,
+        );
+      },
       loading: () => const LinearProgressIndicator(),
-      error: (e, s) => Text('Error loading staff'),
+      error: (e, s) => const Text('Error loading staff'),
     );
   }
 
@@ -266,9 +291,22 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         createdBy: 'receptionist-1', // Mock UID
         createdAt: DateTime.now(),
         signatureB64: session.signatureB64,
+        appointmentId: _appointmentId,
       );
 
       await ref.read(visitRepositoryProvider).createVisit(visit);
+
+      if (_appointmentId != null) {
+        try {
+          final aptRepo = ref.read(appointmentRepositoryProvider);
+          final apt = await aptRepo.getAppointmentById(_appointmentId!);
+          if (apt != null) {
+            await aptRepo.updateAppointment(apt.copyWith(status: 'checked_in', stationId: stationId));
+          }
+        } catch (e) {
+          debugPrint('Error updating appointment status: $e');
+        }
+      }
 
       // 2. Simulate Cloud Function triggering a notification to the host
       Future.delayed(const Duration(seconds: 2), () {

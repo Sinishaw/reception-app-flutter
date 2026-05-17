@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -212,6 +213,12 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
                                     DataCell(Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        // View Details
+                                        IconButton(
+                                          icon: const Icon(Icons.visibility, color: Colors.deepPurple),
+                                          tooltip: 'View Details',
+                                          onPressed: () => _showDetailDialog(context, visit),
+                                        ),
                                         // Edit
                                         IconButton(
                                           icon: const Icon(Icons.edit, color: Colors.blue),
@@ -566,6 +573,18 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
             ElevatedButton(
               onPressed: () async {
                 try {
+                  if (visit.appointmentId != null) {
+                    try {
+                      final aptRepo = ref.read(appointmentRepositoryProvider);
+                      final apt = await aptRepo.getAppointmentById(visit.appointmentId!);
+                      if (apt != null) {
+                        await aptRepo.updateAppointment(apt.copyWith(status: 'scheduled'));
+                      }
+                    } catch (e) {
+                      debugPrint('Failed to revert appointment: $e');
+                    }
+                  }
+
                   await ref.read(visitRepositoryProvider).deleteVisit(visit.id);
                   if (context.mounted) {
                     Navigator.pop(context);
@@ -634,6 +653,197 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showDetailDialog(BuildContext context, Visit visit) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(40.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Visitor Details',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text('Visit ID: ${visit.id}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            ],
+                          ),
+                          _statusChip(visit.status),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Left info column
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildDetailField('Full Name', visit.visitorName),
+                                    _buildDetailField('Phone Number', visit.visitorPhone),
+                                    _buildDetailField('Company', visit.visitorCompany ?? '--'),
+                                    _buildDetailField('Expected Duration', visit.expectedDuration ?? '--'),
+                                    _buildDetailField('Notes', visit.notes ?? '--'),
+                                  ],
+                                ),
+                              ),
+                              // Right info column
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildDetailField('Host Name', visit.hostName),
+                                    _buildDetailField('Purpose of Visit', visit.purpose),
+                                    _buildDetailField('Check-In Time', DateFormat('MMMM dd, yyyy - hh:mm a').format(visit.checkInTime)),
+                                    _buildDetailField('Check-Out Time', visit.checkOutTime != null 
+                                        ? DateFormat('MMMM dd, yyyy - hh:mm a').format(visit.checkOutTime!) 
+                                        : '--'),
+                                    _buildDetailField('Station ID', visit.stationId),
+                                    if (visit.signatureB64 != null) ...[
+                                      const SizedBox(height: 16),
+                                      const Text('Visitor Signature', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.grey.shade200),
+                                          borderRadius: BorderRadius.circular(8),
+                                          color: Colors.grey.shade50,
+                                        ),
+                                        child: Image.memory(base64Decode(visit.signatureB64!), height: 80, fit: BoxFit.contain),
+                                      ),
+                                    ]
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      // Actions footer within Details
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                          const SizedBox(width: 12),
+                          // Edit Action
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context); // Close details
+                              _showEditDialog(context, visit);
+                            },
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: const Text('Edit'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.blue,
+                              side: const BorderSide(color: Colors.blue),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Check-in / Out Action
+                          if (visit.status == 'active')
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context); // Close details
+                                _confirmCheckOut(context, visit);
+                              },
+                              icon: const Icon(Icons.logout, size: 16),
+                              label: const Text('Check Out'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                              ),
+                            )
+                          else
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context); // Close details
+                                _confirmCheckIn(context, visit);
+                              },
+                              icon: const Icon(Icons.login, size: 16),
+                              label: const Text('Check In Again'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          const SizedBox(width: 12),
+                          // Delete Action
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context); // Close details
+                              _confirmDelete(context, visit);
+                            },
+                            icon: const Icon(Icons.delete, size: 16),
+                            label: const Text('Delete'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        ],
+      ),
     );
   }
 }

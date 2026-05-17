@@ -7,6 +7,7 @@ import '../../shared/models/appointment.dart';
 import '../../shared/models/staff.dart';
 import '../../shared/models/visit.dart';
 import '../pairing/station_provider.dart';
+import '../check_in/check_in_form.dart';
 
 class AppointmentsScreen extends ConsumerStatefulWidget {
   const AppointmentsScreen({super.key});
@@ -222,6 +223,12 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                                     DataCell(Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        // View Details
+                                        IconButton(
+                                          icon: const Icon(Icons.visibility, color: Colors.deepPurple),
+                                          tooltip: 'View Details',
+                                          onPressed: () => _showDetailDialog(context, apt),
+                                        ),
                                         // Edit
                                         IconButton(
                                           icon: const Icon(Icons.edit, color: Colors.blue),
@@ -698,65 +705,32 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
     );
   }
 
-  Future<void> _confirmCheckIn(BuildContext context, Appointment appointment) async {
+  void _confirmCheckIn(BuildContext context, Appointment appointment) {
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Check In Visitor'),
-          content: Text('Are you sure you want to check in ${appointment.visitorName} for their scheduled appointment? This will register them as an active visitor.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1050, maxHeight: 780),
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 24.0),
+                  child: CheckInForm(initialAppointment: appointment),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  final stationId = ref.read(stationIdProvider) ?? 'default_station';
-                  final visitId = 'visit_${DateTime.now().millisecondsSinceEpoch}';
-
-                  // 1. Create a Visit record
-                  final visit = Visit(
-                    id: visitId,
-                    visitorName: appointment.visitorName,
-                    visitorPhone: appointment.visitorPhone,
-                    visitorCompany: appointment.visitorCompany,
-                    hostId: appointment.hostId,
-                    hostName: appointment.hostName,
-                    purpose: appointment.purpose,
-                    notes: appointment.notes,
-                    appointmentId: appointment.id,
-                    stationId: stationId,
-                    checkInTime: DateTime.now(),
-                    status: 'active',
-                    createdBy: appointment.createdBy,
-                    createdAt: DateTime.now(),
-                  );
-                  await ref.read(visitRepositoryProvider).createVisit(visit);
-
-                  // 2. Mark Appointment as Checked In
-                  final updatedApt = appointment.copyWith(
-                    status: 'checked_in',
-                    stationId: stationId,
-                  );
-                  await ref.read(appointmentRepositoryProvider).updateAppointment(updatedApt);
-
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    _showFeedback(context, true, '${appointment.visitorName} checked in successfully!');
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    _showFeedback(context, false, 'Check-in failed: $e');
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-              child: const Text('Check In'),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -913,6 +887,170 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
         backgroundColor: success ? Colors.green : Colors.red,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _showDetailDialog(BuildContext context, Appointment appointment) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(40.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Appointment Details',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text('Appointment ID: ${appointment.id}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            ],
+                          ),
+                          _statusChip(appointment.status),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Left column
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildDetailField('Visitor Full Name', appointment.visitorName),
+                                    _buildDetailField('Phone Number', appointment.visitorPhone),
+                                    _buildDetailField('Company', appointment.visitorCompany ?? '--'),
+                                    _buildDetailField('Purpose of Visit', appointment.purpose),
+                                    _buildDetailField('Notes', appointment.notes ?? '--'),
+                                  ],
+                                ),
+                              ),
+                              // Right column
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildDetailField('Host Name', appointment.hostName),
+                                    _buildDetailField('Scheduled At', DateFormat('MMMM dd, yyyy - hh:mm a').format(appointment.scheduledAt)),
+                                    _buildDetailField('Created By', appointment.createdBy ?? '--'),
+                                    _buildDetailField('Created At', appointment.createdAt != null
+                                        ? DateFormat('MMMM dd, yyyy - hh:mm a').format(appointment.createdAt!)
+                                        : '--'),
+                                    _buildDetailField('Station ID', appointment.stationId ?? '--'),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      // Actions footer
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                          const SizedBox(width: 12),
+                          // Edit Action
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context); // Close details
+                              _showEditDialog(context, appointment);
+                            },
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: const Text('Edit'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.blue,
+                              side: const BorderSide(color: Colors.blue),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Check-In Action (Convert)
+                          if (appointment.status == 'scheduled')
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context); // Close details
+                                _confirmCheckIn(context, appointment);
+                              },
+                              icon: const Icon(Icons.check_circle, size: 16),
+                              label: const Text('Check In'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          const SizedBox(width: 12),
+                          // Delete Action
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context); // Close details
+                              _confirmDelete(context, appointment);
+                            },
+                            icon: const Icon(Icons.delete, size: 16),
+                            label: const Text('Delete'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        ],
       ),
     );
   }
