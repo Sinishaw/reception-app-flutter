@@ -78,6 +78,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         child: const Text('Save'),
                       ),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: () async {
+                          await ref.read(stationIdProvider.notifier).clear();
+                          _stationIdController.clear();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Station ID cleared')),
+                            );
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        ),
+                        child: const Text('Clear'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
