@@ -72,18 +72,18 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Animated MMCY Logo Emblem
+                // Animated MMCY Logo Emblem (Styled as an elegant rounded pill card to perfectly fit the wide logo aspect ratio)
                 AnimatedBuilder(
                   animation: _controller,
                   builder: (context, child) {
                     return Transform.scale(
                       scale: _scaleAnimation.value,
                       child: Container(
-                        width: 160,
-                        height: 160,
+                        width: 260,
+                        height: 110,
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerLow,
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withOpacity(0.12),
@@ -99,28 +99,19 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
                           ],
                         ),
                         child: Center(
-                          child: CustomPaint(
-                            size: const Size(80, 80),
-                            painter: _MmcyLogoPainter(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            child: Image.asset(
+                              'assets/logo.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
                     );
                   },
                 ),
-                const SizedBox(height: 36),
-                
-                // Styled Brand Typography
-                const Text(
-                  'MMCY',
-                  style: TextStyle(
-                    color: AppColors.secondary,
-                    fontSize: 36,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 4,
-                  ),
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 48),
                 
                 // Welcome tag
                 Text(
@@ -149,7 +140,7 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
                   },
                 ),
                 
-                const SizedBox(height: 120),
+                const SizedBox(height: 100),
                 
                 // Date tag
                 Text(
@@ -208,95 +199,4 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
       ),
     );
   }
-}
-
-// Custom Painter to render a sharp, vector-based geometric MMCY abstract monogram logo!
-class _MmcyLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paintOrange = Paint()
-      ..color = AppColors.primary
-      ..style = PaintingStyle.fill
-      ..isAntiAlias = true;
-
-    final paintNavy = Paint()
-      ..color = AppColors.secondary
-      ..style = PaintingStyle.fill
-      ..isAntiAlias = true;
-
-    // Draw the stylized MMCY abstract logo mark
-    final double barWidth = size.width * 0.18;
-    final double height = size.height * 0.65;
-
-    // Left Bar (Navy)
-    final RRect leftBar = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        size.width * 0.15,
-        size.height * 0.25,
-        barWidth,
-        height * 0.8,
-      ),
-      Radius.circular(barWidth / 2),
-    );
-    canvas.drawRRect(leftBar, paintNavy);
-
-    // Center-left link arch / diagonal
-    final Path centerLeftLink = Path()
-      ..moveTo(size.width * 0.24, size.height * 0.25)
-      ..cubicTo(
-        size.width * 0.3,
-        size.height * 0.1,
-        size.width * 0.45,
-        size.height * 0.1,
-        size.width * 0.5,
-        size.height * 0.35,
-      )
-      ..lineTo(size.width * 0.5, size.height * 0.5)
-      ..lineTo(size.width * 0.32, size.height * 0.5)
-      ..close();
-    canvas.drawPath(centerLeftLink, paintOrange);
-
-    // Center Bar (Orange)
-    final RRect centerBar = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        size.width * 0.41,
-        size.height * 0.15,
-        barWidth,
-        height * 0.9,
-      ),
-      Radius.circular(barWidth / 2),
-    );
-    canvas.drawRRect(centerBar, paintOrange);
-
-    // Center-right link arch / diagonal
-    final Path centerRightLink = Path()
-      ..moveTo(size.width * 0.5, size.height * 0.15)
-      ..cubicTo(
-        size.width * 0.55,
-        size.height * 0.05,
-        size.width * 0.7,
-        size.height * 0.05,
-        size.width * 0.76,
-        size.height * 0.25,
-      )
-      ..lineTo(size.width * 0.76, size.height * 0.5)
-      ..lineTo(size.width * 0.58, size.height * 0.5)
-      ..close();
-    canvas.drawPath(centerRightLink, paintNavy);
-
-    // Right Bar (Navy)
-    final RRect rightBar = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        size.width * 0.67,
-        size.height * 0.25,
-        barWidth,
-        height * 0.8,
-      ),
-      Radius.circular(barWidth / 2),
-    );
-    canvas.drawRRect(rightBar, paintNavy);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

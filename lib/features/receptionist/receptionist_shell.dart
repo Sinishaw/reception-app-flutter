@@ -53,19 +53,20 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color: AppColors.secondary.withOpacity(0.05),
+                          color: AppColors.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: AppColors.secondary.withOpacity(0.1),
                             width: 1.5,
                           ),
                         ),
-                        child: const Icon(
-                          Icons.business_rounded,
-                          color: AppColors.secondary,
-                          size: 24,
+                        padding: const EdgeInsets.all(6),
+                        child: Image.asset(
+                          'assets/logo.png',
+                          fit: BoxFit.contain,
                         ),
                       ),
                       const SizedBox(width: 16),
