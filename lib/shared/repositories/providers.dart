@@ -3,12 +3,15 @@ import '../../core/theme.dart';
 import 'staff_repository.dart';
 import 'visit_repository.dart';
 import 'session_repository.dart';
+import 'appointment_repository.dart';
 import 'mock_staff_repository.dart';
 import 'mock_visit_repository.dart';
 import 'mock_session_repository.dart';
+import 'mock_appointment_repository.dart';
 import 'firestore_staff_repository.dart';
 import 'firestore_visit_repository.dart';
 import 'firestore_session_repository.dart';
+import 'firestore_appointment_repository.dart';
 
 // Abstract interface providers
 final staffRepositoryProvider = Provider<StaffRepository>((ref) {
@@ -30,4 +33,11 @@ final sessionRepositoryProvider = Provider<SessionRepository>((ref) {
     return MockSessionRepository();
   }
   return FirestoreSessionRepository();
+});
+
+final appointmentRepositoryProvider = Provider<AppointmentRepository>((ref) {
+  if (kUseMockFirestore) {
+    return MockAppointmentRepository();
+  }
+  return FirestoreAppointmentRepository();
 });
