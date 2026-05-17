@@ -23,4 +23,10 @@ class StationId extends _$StationId {
     await prefs.setString(_key, id);
     state = id;
   }
+
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+    state = null;
+  }
 }
