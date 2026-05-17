@@ -51,4 +51,9 @@ class FirestoreVisitRepository implements VisitRepository {
       'checkOutTime': FieldValue.serverTimestamp(),
     });
   }
+
+  @override
+  Future<void> deleteVisit(String visitId) async {
+    await _firestore.collection('visits').doc(visitId).delete();
+  }
 }
