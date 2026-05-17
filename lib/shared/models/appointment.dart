@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'timestamp_converter.dart';
 
 part 'appointment.freezed.dart';
 part 'appointment.g.dart';
@@ -14,11 +15,11 @@ class Appointment with _$Appointment {
     required String hostName,
     required String purpose,
     String? notes,
-    required DateTime scheduledAt,
+    @RequiredTimestampConverter() required DateTime scheduledAt,
     @Default('scheduled') String status, // 'scheduled' | 'checked_in' | 'cancelled' | 'no_show'
     String? stationId,
     required String createdBy,
-    required DateTime createdAt,
+    @RequiredTimestampConverter() required DateTime createdAt,
   }) = _Appointment;
 
   factory Appointment.fromJson(Map<String, dynamic> json) => _$AppointmentFromJson(json);

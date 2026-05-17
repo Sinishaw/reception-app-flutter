@@ -29,11 +29,13 @@ mixin _$Appointment {
   String get hostName => throw _privateConstructorUsedError;
   String get purpose => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
+  @RequiredTimestampConverter()
   DateTime get scheduledAt => throw _privateConstructorUsedError;
   String get status =>
       throw _privateConstructorUsedError; // 'scheduled' | 'checked_in' | 'cancelled' | 'no_show'
   String? get stationId => throw _privateConstructorUsedError;
   String get createdBy => throw _privateConstructorUsedError;
+  @RequiredTimestampConverter()
   DateTime get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this Appointment to a JSON map.
@@ -62,11 +64,11 @@ abstract class $AppointmentCopyWith<$Res> {
     String hostName,
     String purpose,
     String? notes,
-    DateTime scheduledAt,
+    @RequiredTimestampConverter() DateTime scheduledAt,
     String status,
     String? stationId,
     String createdBy,
-    DateTime createdAt,
+    @RequiredTimestampConverter() DateTime createdAt,
   });
 }
 
@@ -177,11 +179,11 @@ abstract class _$$AppointmentImplCopyWith<$Res>
     String hostName,
     String purpose,
     String? notes,
-    DateTime scheduledAt,
+    @RequiredTimestampConverter() DateTime scheduledAt,
     String status,
     String? stationId,
     String createdBy,
-    DateTime createdAt,
+    @RequiredTimestampConverter() DateTime createdAt,
   });
 }
 
@@ -284,11 +286,11 @@ class _$AppointmentImpl implements _Appointment {
     required this.hostName,
     required this.purpose,
     this.notes,
-    required this.scheduledAt,
+    @RequiredTimestampConverter() required this.scheduledAt,
     this.status = 'scheduled',
     this.stationId,
     required this.createdBy,
-    required this.createdAt,
+    @RequiredTimestampConverter() required this.createdAt,
   });
 
   factory _$AppointmentImpl.fromJson(Map<String, dynamic> json) =>
@@ -311,6 +313,7 @@ class _$AppointmentImpl implements _Appointment {
   @override
   final String? notes;
   @override
+  @RequiredTimestampConverter()
   final DateTime scheduledAt;
   @override
   @JsonKey()
@@ -321,6 +324,7 @@ class _$AppointmentImpl implements _Appointment {
   @override
   final String createdBy;
   @override
+  @RequiredTimestampConverter()
   final DateTime createdAt;
 
   @override
@@ -399,11 +403,11 @@ abstract class _Appointment implements Appointment {
     required final String hostName,
     required final String purpose,
     final String? notes,
-    required final DateTime scheduledAt,
+    @RequiredTimestampConverter() required final DateTime scheduledAt,
     final String status,
     final String? stationId,
     required final String createdBy,
-    required final DateTime createdAt,
+    @RequiredTimestampConverter() required final DateTime createdAt,
   }) = _$AppointmentImpl;
 
   factory _Appointment.fromJson(Map<String, dynamic> json) =
@@ -426,6 +430,7 @@ abstract class _Appointment implements Appointment {
   @override
   String? get notes;
   @override
+  @RequiredTimestampConverter()
   DateTime get scheduledAt;
   @override
   String get status; // 'scheduled' | 'checked_in' | 'cancelled' | 'no_show'
@@ -434,6 +439,7 @@ abstract class _Appointment implements Appointment {
   @override
   String get createdBy;
   @override
+  @RequiredTimestampConverter()
   DateTime get createdAt;
 
   /// Create a copy of Appointment
