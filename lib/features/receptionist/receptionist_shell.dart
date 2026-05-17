@@ -35,6 +35,7 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
 
   @override
   Widget build(BuildContext context) {
+    final stationId = ref.watch(stationIdProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Row(
@@ -178,7 +179,7 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'ID: lobby-kiosk-01',
+                          'ID: ${stationId ?? 'Not Paired'}',
                           style: TextStyle(
                             color: AppColors.secondary.withOpacity(0.5),
                             fontSize: 10,
