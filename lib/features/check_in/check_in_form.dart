@@ -305,6 +305,9 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Check-in successful!')),
         );
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -335,6 +338,9 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Form cleared successfully')),
       );
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     }
   }
 }
