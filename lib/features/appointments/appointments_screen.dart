@@ -271,61 +271,67 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                                 horizontalMargin: 24,
                                 dividerThickness: 0,
                                 columns: const [
-                                  DataColumn(label: Text('Visitor', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Company', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Host', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Scheduled At', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Purpose', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text('Visitor', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Company', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Host', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Scheduled At', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Purpose', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
                                 ],
-                                rows: paginated.map((apt) => DataRow(
-                                  cells: [
-                                    DataCell(Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(apt.visitorName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(apt.visitorPhone, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                      ],
-                                    )),
-                                    DataCell(Text(apt.visitorCompany ?? '--')),
-                                    DataCell(Text(apt.hostName)),
-                                    DataCell(Text(DateFormat('MMM dd, hh:mm a').format(apt.scheduledAt))),
-                                    DataCell(Text(apt.purpose)),
-                                    DataCell(_statusChip(apt.status)),
-                                    DataCell(Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // View Details
-                                        IconButton(
-                                          icon: const Icon(Icons.visibility, color: Colors.deepPurple),
-                                          tooltip: 'View Details',
-                                          onPressed: () => _showDetailDialog(context, apt),
-                                        ),
-                                        // Edit
-                                        IconButton(
-                                          icon: const Icon(Icons.edit, color: Colors.blue),
-                                          tooltip: 'Edit Appointment',
-                                          onPressed: () => _showEditDialog(context, apt),
-                                        ),
-                                        // Convert Appointment to Visit Check-in
-                                        if (apt.status == 'scheduled')
+                                rows: List<DataRow>.generate(paginated.length, (index) {
+                                  final apt = paginated[index];
+                                  return DataRow(
+                                    color: WidgetStateProperty.all(
+                                      index.isEven ? Colors.transparent : AppColors.secondary.withOpacity(0.03),
+                                    ),
+                                    cells: [
+                                      DataCell(Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(apt.visitorName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          Text(apt.visitorPhone, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                        ],
+                                      )),
+                                      DataCell(Text(apt.visitorCompany ?? '--')),
+                                      DataCell(Text(apt.hostName)),
+                                      DataCell(Text(DateFormat('MMM dd, hh:mm a').format(apt.scheduledAt))),
+                                      DataCell(Text(apt.purpose)),
+                                      DataCell(_statusChip(apt.status)),
+                                      DataCell(Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // View Details
                                           IconButton(
-                                            icon: const Icon(Icons.check_circle, color: Colors.green),
-                                            tooltip: 'Check In Visitor',
-                                            onPressed: () => _confirmCheckIn(context, apt),
+                                            icon: const Icon(Icons.visibility, color: Colors.deepPurple),
+                                            tooltip: 'View Details',
+                                            onPressed: () => _showDetailDialog(context, apt),
                                           ),
-                                        // Delete
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.red),
-                                          tooltip: 'Delete Record',
-                                          onPressed: () => _confirmDelete(context, apt),
-                                        ),
-                                      ],
-                                    )),
-                                  ],
-                                )).toList(),
+                                          // Edit
+                                          IconButton(
+                                            icon: const Icon(Icons.edit, color: Colors.blue),
+                                            tooltip: 'Edit Appointment',
+                                            onPressed: () => _showEditDialog(context, apt),
+                                          ),
+                                          // Convert Appointment to Visit Check-in
+                                          if (apt.status == 'scheduled')
+                                            IconButton(
+                                              icon: const Icon(Icons.check_circle, color: Colors.green),
+                                              tooltip: 'Check In Visitor',
+                                              onPressed: () => _confirmCheckIn(context, apt),
+                                            ),
+                                          // Delete
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.red),
+                                            tooltip: 'Delete Record',
+                                            onPressed: () => _confirmDelete(context, apt),
+                                          ),
+                                        ],
+                                      )),
+                                    ],
+                                  );
+                                }),
                               ),
                             ),
                           ),

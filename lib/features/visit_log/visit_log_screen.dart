@@ -260,69 +260,75 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
                                 horizontalMargin: 24,
                                 dividerThickness: 0,
                                 columns: const [
-                                  DataColumn(label: Text('Visitor', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Company', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Host', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Check-in', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Check-out', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text('Visitor', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Company', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Host', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Check-in', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Check-out', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
                                 ],
-                                rows: paginatedVisits.map((visit) => DataRow(
-                                  cells: [
-                                    DataCell(Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(visit.visitorName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(visit.visitorPhone, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                      ],
-                                    )),
-                                    DataCell(Text(visit.visitorCompany ?? '--')),
-                                    DataCell(Text(visit.hostName)),
-                                    DataCell(Text(DateFormat('MMM dd, hh:mm a').format(visit.checkInTime))),
-                                    DataCell(Text(visit.checkOutTime != null 
-                                        ? DateFormat('hh:mm a').format(visit.checkOutTime!) 
-                                        : '--')),
-                                    DataCell(_statusChip(visit.status)),
-                                    DataCell(Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // View Details
-                                        IconButton(
-                                          icon: const Icon(Icons.visibility, color: Colors.deepPurple),
-                                          tooltip: 'View Details',
-                                          onPressed: () => _showDetailDialog(context, visit),
-                                        ),
-                                        // Edit
-                                        IconButton(
-                                          icon: const Icon(Icons.edit, color: Colors.blue),
-                                          tooltip: 'Edit Visit',
-                                          onPressed: () => _showEditDialog(context, visit),
-                                        ),
-                                        // Check-in / Out Toggle
-                                        if (visit.status == 'active')
+                                rows: List<DataRow>.generate(paginatedVisits.length, (index) {
+                                  final visit = paginatedVisits[index];
+                                  return DataRow(
+                                    color: WidgetStateProperty.all(
+                                      index.isEven ? Colors.transparent : AppColors.secondary.withOpacity(0.03),
+                                    ),
+                                    cells: [
+                                      DataCell(Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(visit.visitorName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          Text(visit.visitorPhone, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                        ],
+                                      )),
+                                      DataCell(Text(visit.visitorCompany ?? '--')),
+                                      DataCell(Text(visit.hostName)),
+                                      DataCell(Text(DateFormat('MMM dd, hh:mm a').format(visit.checkInTime))),
+                                      DataCell(Text(visit.checkOutTime != null 
+                                          ? DateFormat('hh:mm a').format(visit.checkOutTime!) 
+                                          : '--')),
+                                      DataCell(_statusChip(visit.status)),
+                                      DataCell(Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // View Details
                                           IconButton(
-                                            icon: const Icon(Icons.logout, color: Colors.orange),
-                                            tooltip: 'Check Out',
-                                            onPressed: () => _confirmCheckOut(context, visit),
-                                          )
-                                        else
-                                          IconButton(
-                                            icon: const Icon(Icons.login, color: Colors.green),
-                                            tooltip: 'Check In Again',
-                                            onPressed: () => _confirmCheckIn(context, visit),
+                                            icon: const Icon(Icons.visibility, color: Colors.deepPurple),
+                                            tooltip: 'View Details',
+                                            onPressed: () => _showDetailDialog(context, visit),
                                           ),
-                                        // Delete
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.red),
-                                          tooltip: 'Delete Record',
-                                          onPressed: () => _confirmDelete(context, visit),
-                                        ),
-                                      ],
-                                    )),
-                                  ],
-                                )).toList(),
+                                          // Edit
+                                          IconButton(
+                                            icon: const Icon(Icons.edit, color: Colors.blue),
+                                            tooltip: 'Edit Visit',
+                                            onPressed: () => _showEditDialog(context, visit),
+                                          ),
+                                          // Check-in / Out Toggle
+                                          if (visit.status == 'active')
+                                            IconButton(
+                                              icon: const Icon(Icons.logout, color: Colors.orange),
+                                              tooltip: 'Check Out',
+                                              onPressed: () => _confirmCheckOut(context, visit),
+                                            )
+                                          else
+                                            IconButton(
+                                              icon: const Icon(Icons.login, color: Colors.green),
+                                              tooltip: 'Check In Again',
+                                              onPressed: () => _confirmCheckIn(context, visit),
+                                            ),
+                                          // Delete
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.red),
+                                            tooltip: 'Delete Record',
+                                            onPressed: () => _confirmDelete(context, visit),
+                                          ),
+                                        ],
+                                      )),
+                                    ],
+                                  );
+                                }),
                               ),
                             ),
                           ),

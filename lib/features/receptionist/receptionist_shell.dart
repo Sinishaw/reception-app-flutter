@@ -40,7 +40,7 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
           // 1. Sleek Modern Sidebar
           Container(
             width: 280,
-            color: AppColors.secondary, // Premium Deep Midnight Navy (#0D1B3D)
+            color: AppColors.surfaceContainerLow, // Premium Soft Warm Fine-Paper Sidebar Background
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -52,16 +52,16 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.secondary.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.2),
+                            color: AppColors.secondary.withOpacity(0.1),
                             width: 1.5,
                           ),
                         ),
                         child: const Icon(
                           Icons.business_rounded,
-                          color: AppColors.primary,
+                          color: AppColors.secondary,
                           size: 24,
                         ),
                       ),
@@ -74,7 +74,7 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                             const Text(
                               'MMCY',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.secondary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20,
                                 letterSpacing: 0.5,
@@ -134,10 +134,10 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: AppColors.secondary.withOpacity(0.04),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.05),
+                        color: AppColors.secondary.withOpacity(0.08),
                         width: 1,
                       ),
                     ),
@@ -155,10 +155,10 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Station Active',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: AppColors.secondary.withOpacity(0.7),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -169,16 +169,16 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                         const Text(
                           'Front Desk - Main Lobby',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.secondary,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           'ID: lobby-kiosk-01',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: AppColors.secondary.withOpacity(0.5),
                             fontSize: 10,
                           ),
                         ),
@@ -299,14 +299,14 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : Colors.white60,
+              color: isSelected ? Colors.white : AppColors.secondary.withOpacity(0.7),
               size: 22,
             ),
             const SizedBox(width: 16),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white60,
+                color: isSelected ? Colors.white : AppColors.secondary.withOpacity(0.7),
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
