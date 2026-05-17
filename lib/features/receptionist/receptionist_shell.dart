@@ -249,7 +249,7 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                             child: IconButton(
                               icon: Icon(
                                 Icons.tablet_mac_rounded,
-                                color: stationId == null ? Colors.green : Colors.grey,
+                                color: stationId != null ? Colors.green : Colors.grey,
                                 size: 22,
                               ),
                               tooltip: 'Sync & Refresh Tablet',
