@@ -49,51 +49,26 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
               children: [
                 // Branding Header
                 Padding(
-                  padding: const EdgeInsets.only(left: 28, top: 48, right: 24, bottom: 36),
-                  child: Row(
+                  padding: const EdgeInsets.only(left: 28, top: 48, right: 28, bottom: 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.secondary.withOpacity(0.1),
-                            width: 1.5,
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(6),
-                        child: Image.asset(
-                          'assets/logo.png',
-                          fit: BoxFit.contain,
-                        ),
+                      Image.asset(
+                        'assets/logo.png',
+                        width: 170,
+                        height: 60,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.centerLeft,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              'MMCY',
-                              style: TextStyle(
-                                color: AppColors.secondary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            Text(
-                              'CONCIERGE SYSTEM',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 10,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(height: 12),
+                      Text(
+                        'Reception Desk',
+                        style: TextStyle(
+                          color: AppColors.secondary.withOpacity(0.85),
+                          fontFamily: 'Manrope',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          letterSpacing: 0.8,
                         ),
                       ),
                     ],
