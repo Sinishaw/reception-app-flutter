@@ -18,7 +18,7 @@ class SummaryScreen extends ConsumerStatefulWidget {
 class _SummaryScreenState extends ConsumerState<SummaryScreen> {
   final SignatureController _controller = SignatureController(
     penStrokeWidth: 5,
-    penColor: AppColors.text,
+    penColor: AppColors.onSurface,
     exportBackgroundColor: Colors.white,
   );
 

@@ -73,25 +73,31 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('New Walk-in Visitor', style: Theme.of(context).textTheme.headlineMedium),
+                        Text(
+                          'New Walk-in Visitor',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
                         const SizedBox(height: 32),
                         TextFormField(
                           controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Visitor Full Name', border: OutlineInputBorder()),
+                          decoration: _softTouchDecoration('Visitor Full Name'),
                           validator: (v) => v!.isEmpty ? 'Required' : null,
                           enabled: !_isWaitingForSignature,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _phoneController,
-                          decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                          decoration: _softTouchDecoration('Phone Number'),
                           validator: (v) => v!.isEmpty ? 'Required' : null,
                           enabled: !_isWaitingForSignature,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _companyController,
-                          decoration: const InputDecoration(labelText: 'Company (Optional)', border: OutlineInputBorder()),
+                          decoration: _softTouchDecoration('Company (Optional)'),
                           enabled: !_isWaitingForSignature,
                         ),
                         const SizedBox(height: 16),
@@ -99,28 +105,28 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: _purpose,
-                          decoration: const InputDecoration(labelText: 'Purpose', border: OutlineInputBorder()),
-                          items: ['Meeting', 'Delivery', 'Interview', 'Other'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                          decoration: _softTouchDecoration('Purpose'),
+                          items: ['Meeting', 'Delivery', 'Interview', 'Other']
+                              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                              .toList(),
                           onChanged: _isWaitingForSignature ? null : (v) => setState(() => _purpose = v!),
                         ),
                         const SizedBox(height: 32),
                         if (!_isWaitingForSignature)
                           Row(
                             children: [
-                              ElevatedButton(
+                              _buildGradientButton(
                                 onPressed: _sendToTablet,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                                ),
-                                child: const Text('Preview & Send to Visitor'),
+                                child: const Text('Preview & Send to Visitor', style: TextStyle(fontWeight: FontWeight.bold)),
                               ),
                               const SizedBox(width: 16),
                               OutlinedButton(
                                 onPressed: _clearForm,
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                  foregroundColor: AppColors.secondary,
+                                  side: const BorderSide(color: AppColors.outlineVariant),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
                                 child: const Text('Clear Form'),
                               ),
@@ -130,11 +136,18 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
-                                  CircularProgressIndicator(),
-                                  SizedBox(width: 16),
-                                  Text('Waiting for visitor to sign on tablet...'),
+                                  const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Text(
+                                    'Waiting for visitor to sign on tablet...',
+                                    style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w500),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 24),
@@ -142,6 +155,9 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                                 onPressed: _clearForm,
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
                                 child: const Text('Cancel & Clear Form'),
                               ),
@@ -151,26 +167,34 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Signature Received!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 16),
+                              const Row(
+                                children: [
+                                  Icon(Icons.check_circle, color: Colors.green),
+                                  SizedBox(width: 8),
+                                  Text('Signature Received!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
                               Row(
                                 children: [
-                                  ElevatedButton(
+                                  _buildGradientButton(
                                     onPressed: _confirmCheckIn,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.accent,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                                    ),
-                                    child: _isSubmitting 
-                                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                      : const Text('Confirm & Check-in'),
+                                    child: _isSubmitting
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                          )
+                                        : const Text('Confirm & Check-in', style: TextStyle(fontWeight: FontWeight.bold)),
                                   ),
                                   const SizedBox(width: 16),
                                   OutlinedButton(
                                     onPressed: _clearForm,
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                      foregroundColor: AppColors.secondary,
+                                      side: const BorderSide(color: AppColors.outlineVariant),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
                                     child: const Text('Clear Form'),
                                   ),
@@ -186,22 +210,50 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                 // Right Column: Preview/Status
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.onSurface.withOpacity(0.04),
+                          blurRadius: 32,
+                          offset: const Offset(0, 12),
+                        )
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Tablet Status', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        Text('Mode: ${session?.screen ?? 'idle'}'),
-                        Text('Status: ${session?.status ?? 'N/A'}'),
-                        const Divider(height: 32),
-                        if (isSigned && session?.signatureB64 != null)
-                          Image.memory(base64Decode(session!.signatureB64!), height: 100),
+                        Text(
+                          'Tablet Status',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildStatusRow('Active Screen', session?.screen?.toUpperCase() ?? 'IDLE'),
+                        const SizedBox(height: 12),
+                        _buildStatusRow('Connection', session?.status?.toUpperCase() ?? 'N/A'),
+                        if (isSigned && session?.signatureB64 != null) ...[
+                          const SizedBox(height: 32),
+                          Text(
+                            'Visitor Signature',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: AppColors.secondary),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Image.memory(
+                              base64Decode(session!.signatureB64!),
+                              height: 100,
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -213,6 +265,84 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, s) => Center(child: Text('Error: $e')),
+    );
+  }
+
+  Widget _buildStatusRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w500)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _softTouchDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w500, fontSize: 14),
+      filled: true,
+      fillColor: AppColors.surfaceContainerHighest,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+    );
+  }
+
+  Widget _buildGradientButton({required VoidCallback? onPressed, required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: onPressed != null
+            ? const LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryContainer],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: onPressed == null ? Colors.grey.shade300 : null,
+        boxShadow: onPressed != null
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                )
+              ]
+            : null,
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: child,
+      ),
     );
   }
 
@@ -229,7 +359,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         }
         return DropdownButtonFormField<Staff>(
           value: _selectedHost,
-          decoration: const InputDecoration(labelText: 'Host / Person being visited', border: OutlineInputBorder()),
+          decoration: _softTouchDecoration('Host / Person being visited'),
           items: staff.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
           onChanged: _isWaitingForSignature ? null : (v) => setState(() => _selectedHost = v),
           validator: (v) => v == null ? 'Required' : null,
