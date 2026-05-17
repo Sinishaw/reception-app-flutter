@@ -40,6 +40,74 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
     super.dispose();
   }
 
+  InputDecoration _softTouchDecoration({
+    required String hintText,
+    String? labelText,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      labelText: labelText,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      labelStyle: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w500, fontSize: 14),
+      hintStyle: TextStyle(color: AppColors.secondary.withOpacity(0.6), fontSize: 14),
+      filled: true,
+      fillColor: AppColors.surfaceContainerHighest,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    );
+  }
+
+  Widget _buildGradientButton({
+    required VoidCallback? onPressed,
+    required Widget child,
+    IconData? icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: onPressed != null
+            ? const LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryContainer],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: onPressed == null ? Colors.grey.shade300 : null,
+        boxShadow: onPressed != null
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                )
+              ]
+            : null,
+      ),
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: icon != null ? Icon(icon, color: Colors.white, size: 18) : const SizedBox.shrink(),
+        label: child,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final visitsAsync = ref.watch(visitListProvider);
@@ -52,26 +120,28 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Visitors', style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                'Visitors',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
               Row(
                 children: [
-                  ElevatedButton.icon(
+                  _buildGradientButton(
                     onPressed: () => _showAddVisitorDialog(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Visitor'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    icon: Icons.add,
+                    child: const Text('Add Visitor', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton.icon(
                     onPressed: () {},
-                    icon: const Icon(Icons.download),
-                    label: const Text('Export to CSV'),
+                    icon: const Icon(Icons.download, size: 18),
+                    label: const Text('Export to CSV', style: TextStyle(fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.secondary,
+                      side: const BorderSide(color: AppColors.outlineVariant),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -88,18 +158,15 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
                 flex: 3,
                 child: TextField(
                   controller: _searchController,
-                  decoration: InputDecoration(
+                  decoration: _softTouchDecoration(
                     hintText: 'Search visitors, hosts, or company...',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.secondary),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear, color: AppColors.secondary),
                             onPressed: () => _searchController.clear(),
                           )
                         : null,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Colors.white,
                   ),
                 ),
               ),
@@ -108,11 +175,9 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
                 flex: 1,
                 child: DropdownButtonFormField<String>(
                   value: _statusFilter,
-                  decoration: InputDecoration(
+                  decoration: _softTouchDecoration(
+                    hintText: 'Status Filter',
                     labelText: 'Status Filter',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Colors.white,
                   ),
                   items: const [
                     DropdownMenuItem(value: 'All', child: Text('All Statuses')),
@@ -134,11 +199,20 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
           const SizedBox(height: 24),
           // Table Card
           Expanded(
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.onSurface.withOpacity(0.04),
+                    blurRadius: 32,
+                    offset: const Offset(0, 12),
+                  )
+                ],
+              ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 child: visitsAsync.when(
                   data: (visits) {
                     // Filter in memory
@@ -182,72 +256,79 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
                             child: SizedBox(
                               width: double.infinity,
                               child: DataTable(
-                                headingRowColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.05)),
+                                headingRowColor: WidgetStateProperty.all(AppColors.surfaceContainerHighest),
                                 horizontalMargin: 24,
+                                dividerThickness: 0,
                                 columns: const [
-                                  DataColumn(label: Text('Visitor', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Company', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Host', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Check-in', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Check-out', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text('Visitor', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Company', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Host', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Check-in', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Check-out', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
+                                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary))),
                                 ],
-                                rows: paginatedVisits.map((visit) => DataRow(
-                                  cells: [
-                                    DataCell(Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(visit.visitorName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(visit.visitorPhone, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                      ],
-                                    )),
-                                    DataCell(Text(visit.visitorCompany ?? '--')),
-                                    DataCell(Text(visit.hostName)),
-                                    DataCell(Text(DateFormat('MMM dd, hh:mm a').format(visit.checkInTime))),
-                                    DataCell(Text(visit.checkOutTime != null 
-                                        ? DateFormat('hh:mm a').format(visit.checkOutTime!) 
-                                        : '--')),
-                                    DataCell(_statusChip(visit.status)),
-                                    DataCell(Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // View Details
-                                        IconButton(
-                                          icon: const Icon(Icons.visibility, color: Colors.deepPurple),
-                                          tooltip: 'View Details',
-                                          onPressed: () => _showDetailDialog(context, visit),
-                                        ),
-                                        // Edit
-                                        IconButton(
-                                          icon: const Icon(Icons.edit, color: Colors.blue),
-                                          tooltip: 'Edit Visit',
-                                          onPressed: () => _showEditDialog(context, visit),
-                                        ),
-                                        // Check-in / Out Toggle
-                                        if (visit.status == 'active')
+                                rows: List<DataRow>.generate(paginatedVisits.length, (index) {
+                                  final visit = paginatedVisits[index];
+                                  return DataRow(
+                                    color: WidgetStateProperty.all(
+                                      index.isEven ? Colors.transparent : AppColors.secondary.withOpacity(0.03),
+                                    ),
+                                    cells: [
+                                      DataCell(Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(visit.visitorName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          Text(visit.visitorPhone, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                        ],
+                                      )),
+                                      DataCell(Text(visit.visitorCompany ?? '--')),
+                                      DataCell(Text(visit.hostName)),
+                                      DataCell(Text(DateFormat('MMM dd, hh:mm a').format(visit.checkInTime))),
+                                      DataCell(Text(visit.checkOutTime != null 
+                                          ? DateFormat('hh:mm a').format(visit.checkOutTime!) 
+                                          : '--')),
+                                      DataCell(_statusChip(visit.status)),
+                                      DataCell(Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // View Details
                                           IconButton(
-                                            icon: const Icon(Icons.logout, color: Colors.orange),
-                                            tooltip: 'Check Out',
-                                            onPressed: () => _confirmCheckOut(context, visit),
-                                          )
-                                        else
-                                          IconButton(
-                                            icon: const Icon(Icons.login, color: Colors.green),
-                                            tooltip: 'Check In Again',
-                                            onPressed: () => _confirmCheckIn(context, visit),
+                                            icon: const Icon(Icons.visibility, color: Colors.deepPurple),
+                                            tooltip: 'View Details',
+                                            onPressed: () => _showDetailDialog(context, visit),
                                           ),
-                                        // Delete
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.red),
-                                          tooltip: 'Delete Record',
-                                          onPressed: () => _confirmDelete(context, visit),
-                                        ),
-                                      ],
-                                    )),
-                                  ],
-                                )).toList(),
+                                          // Edit
+                                          IconButton(
+                                            icon: const Icon(Icons.edit, color: Colors.blue),
+                                            tooltip: 'Edit Visit',
+                                            onPressed: () => _showEditDialog(context, visit),
+                                          ),
+                                          // Check-in / Out Toggle
+                                          if (visit.status == 'active')
+                                            IconButton(
+                                              icon: const Icon(Icons.logout, color: Colors.orange),
+                                              tooltip: 'Check Out',
+                                              onPressed: () => _confirmCheckOut(context, visit),
+                                            )
+                                          else
+                                            IconButton(
+                                              icon: const Icon(Icons.login, color: Colors.green),
+                                              tooltip: 'Check In Again',
+                                              onPressed: () => _confirmCheckIn(context, visit),
+                                            ),
+                                          // Delete
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.red),
+                                            tooltip: 'Delete Record',
+                                            onPressed: () => _confirmDelete(context, visit),
+                                          ),
+                                        ],
+                                      )),
+                                    ],
+                                  );
+                                }),
                               ),
                             ),
                           ),
@@ -328,19 +409,20 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
 
   Widget _statusChip(String status) {
     final isActive = status == 'active';
-    final color = isActive ? Colors.green : Colors.grey;
+    final color = isActive ? Colors.green : AppColors.secondary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         status.replaceAll('_', ' ').toUpperCase(),
         style: TextStyle(
           fontSize: 10, 
           color: color, 
-          fontWeight: FontWeight.bold
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
         ),
       ),
     );

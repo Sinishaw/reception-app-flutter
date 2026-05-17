@@ -46,3 +46,11 @@ app.*.map.json
 
 # Firebase cache
 .firebase/
+
+# Local Environment and MCP settings
+.env
+.env.local
+mcp_settings.json
+.roo/
+.cline/
+.vscode/

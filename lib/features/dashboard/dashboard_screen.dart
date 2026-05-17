@@ -112,7 +112,7 @@ class PurposeDonutChart extends StatelessWidget {
       PieChartData(
         sections: [
           PieChartSectionData(value: 40, title: 'Meeting', color: AppColors.primary, radius: 50),
-          PieChartSectionData(value: 30, title: 'Delivery', color: AppColors.accent, radius: 50),
+          PieChartSectionData(value: 30, title: 'Delivery', color: AppColors.tertiary, radius: 50),
           PieChartSectionData(value: 20, title: 'Interview', color: Colors.blue, radius: 50),
           PieChartSectionData(value: 10, title: 'Other', color: Colors.grey, radius: 50),
         ],
