@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // The Architectural Concierge Design Tokens
-  static const primary = Color(0xFF9C3F00); // Warm Burnt Orange / Terracotta
+  static const primary = Color(0xFFF47B20); // Warm Burnt Orange / Terracotta
   static const primaryContainer = Color(0xFFC45100); // Energetic dark burnt orange
-  static const secondary = Color(0xFF4E6073); // Professional Deep Slate Blue
+  static const secondary = Color(0xFF0D1B3D); // Professional Deep Slate Blue
   static const tertiary = Color(0xFF005AB4); // Vibrant Architectural Blue
   
   // Surface Philosophy & Levels (Nesting Fine-Paper Sheets)
