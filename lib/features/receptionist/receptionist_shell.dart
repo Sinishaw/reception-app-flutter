@@ -169,9 +169,9 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Front Desk - Main Lobby',
-                          style: TextStyle(
+                        Text(
+                          stationId != null ? 'Front Desk - $stationId' : 'Front Desk - Main Lobby',
+                          style: const TextStyle(
                             color: AppColors.secondary,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -247,9 +247,9 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.tablet_mac_rounded,
-                                color: AppColors.secondary,
+                                color: stationId != null ? Colors.green : Colors.grey,
                                 size: 22,
                               ),
                               tooltip: 'Sync & Refresh Tablet',
