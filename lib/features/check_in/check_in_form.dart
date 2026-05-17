@@ -89,38 +89,76 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                         ),
                         const SizedBox(height: 32),
                         if (!_isWaitingForSignature)
-                          ElevatedButton(
-                            onPressed: _sendToTablet,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            ),
-                            child: const Text('Preview & Send to Visitor'),
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: _sendToTablet,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                ),
+                                child: const Text('Preview & Send to Visitor'),
+                              ),
+                              const SizedBox(width: 16),
+                              OutlinedButton(
+                                onPressed: _clearForm,
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                ),
+                                child: const Text('Clear Form'),
+                              ),
+                            ],
                           )
                         else if (!isSigned)
-                          const Column(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 16),
-                              Text('Waiting for visitor to sign on tablet...'),
+                              const Row(
+                                children: [
+                                  CircularProgressIndicator(),
+                                  SizedBox(width: 16),
+                                  Text('Waiting for visitor to sign on tablet...'),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              OutlinedButton(
+                                onPressed: _clearForm,
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                ),
+                                child: const Text('Cancel & Clear Form'),
+                              ),
                             ],
                           )
                         else
                           Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text('Signature Received!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: _confirmCheckIn,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.accent,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                                ),
-                                child: _isSubmitting 
-                                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : const Text('Confirm & Check-in'),
+                              Row(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: _confirmCheckIn,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.accent,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                    ),
+                                    child: _isSubmitting 
+                                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                      : const Text('Confirm & Check-in'),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  OutlinedButton(
+                                    onPressed: _clearForm,
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                    ),
+                                    child: const Text('Clear Form'),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -276,6 +314,27 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
       }
     } finally {
       setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _clearForm() async {
+    final stationId = ref.read(stationIdProvider);
+    if (stationId != null) {
+      await ref.read(sessionRepositoryProvider).clearSession(stationId);
+    }
+    setState(() {
+      _isWaitingForSignature = false;
+      _nameController.clear();
+      _phoneController.clear();
+      _companyController.clear();
+      _notesController.clear();
+      _selectedHost = null;
+      _purpose = 'Meeting';
+    });
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Form cleared successfully')),
+      );
     }
   }
 }
