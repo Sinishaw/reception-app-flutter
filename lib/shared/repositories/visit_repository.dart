@@ -7,4 +7,5 @@ abstract class VisitRepository {
   Stream<List<Visit>> watchActiveVisits();
   Stream<List<Visit>> watchVisitHistory();
   Future<void> checkOut(String visitId);
+  Future<void> deleteVisit(String visitId);
 }
