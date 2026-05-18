@@ -27,7 +27,7 @@ class MockSessionRepository implements SessionRepository {
   @override
   Future<void> clearSession(String stationId) async {
     await Future.delayed(const Duration(milliseconds: 100));
-    _getOrBuilder(stationId).add(const ActiveSession(screen: 'idle'));
+    _getOrBuilder(stationId).add(null);
   }
 
   @override

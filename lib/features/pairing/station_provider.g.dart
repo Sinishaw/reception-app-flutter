@@ -38,5 +38,21 @@ final assignedFloorProvider =
     );
 
 typedef _$AssignedFloor = AutoDisposeNotifier<String?>;
+String _$pairingTimeHash() => r'a8d38ea6874d4d43abdea82d791fbda3138726ac';
+
+/// See also [PairingTime].
+@ProviderFor(PairingTime)
+final pairingTimeProvider =
+    AutoDisposeNotifierProvider<PairingTime, String?>.internal(
+      PairingTime.new,
+      name: r'pairingTimeProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$pairingTimeHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$PairingTime = AutoDisposeNotifier<String?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

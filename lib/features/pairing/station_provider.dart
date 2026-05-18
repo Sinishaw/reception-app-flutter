@@ -58,3 +58,31 @@ class AssignedFloor extends _$AssignedFloor {
     state = null;
   }
 }
+
+@riverpod
+class PairingTime extends _$PairingTime {
+  static const _key = 'pairing_time';
+
+  @override
+  String? build() {
+    _load();
+    return null;
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getString(_key);
+  }
+
+  Future<void> set(String timeIso) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, timeIso);
+    state = timeIso;
+  }
+
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+    state = null;
+  }
+}

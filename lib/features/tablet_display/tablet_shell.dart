@@ -4,7 +4,6 @@ import 'session_provider.dart';
 import 'idle_screen.dart';
 import 'summary_screen.dart';
 import 'badge_screen.dart';
-import '../pairing/station_setup_screen.dart';
 import '../pairing/station_provider.dart';
 
 class TabletShell extends ConsumerWidget {
@@ -15,8 +14,16 @@ class TabletShell extends ConsumerWidget {
     final stationId = ref.watch(stationIdProvider);
     
     if (stationId == null) {
-      return const StationSetupScreen();
+      return const IdleScreen();
     }
+
+    ref.listen<AsyncValue>(activeSessionProvider, (previous, next) {
+      if (next.hasValue && next.value == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(stationIdProvider.notifier).clear();
+        });
+      }
+    });
 
     final sessionAsync = ref.watch(activeSessionProvider);
 
