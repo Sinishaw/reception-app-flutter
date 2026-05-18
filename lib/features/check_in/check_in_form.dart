@@ -9,6 +9,7 @@ import '../../shared/models/visit.dart';
 import '../../shared/models/appointment.dart';
 import '../notifications/notification_service.dart';
 import '../pairing/station_provider.dart';
+import '../../shared/services/floor_service.dart';
 import '../tablet_display/session_provider.dart';
 
 class CheckInForm extends ConsumerStatefulWidget {
@@ -25,7 +26,9 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
   final _phoneController = TextEditingController();
   final _companyController = TextEditingController();
   final _notesController = TextEditingController();
+  final _floorController = TextEditingController();
   
+  String? _selectedFloor;
   Staff? _selectedHost;
   String _purpose = 'Meeting';
   String _duration = '1 hr';
@@ -102,6 +105,89 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                         ),
                         const SizedBox(height: 16),
                         _buildHostDropdown(),
+                        const SizedBox(height: 16),
+                        Autocomplete<String>(
+                          optionsBuilder: (TextEditingValue textEditingValue) async {
+                            return await FloorService.fetchFloors(textEditingValue.text);
+                          },
+                          onSelected: (String selection) {
+                            setState(() {
+                              _selectedFloor = selection;
+                            });
+                          },
+                          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                            if (controller.text != _floorController.text) {
+                              controller.text = _floorController.text;
+                            }
+                            controller.addListener(() {
+                              _floorController.text = controller.text;
+                            });
+                            return TextFormField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: _softTouchDecoration('Floor to Visit (Optional)').copyWith(
+                                prefixIcon: const Icon(Icons.layers_rounded, color: AppColors.secondary),
+                                suffixIcon: controller.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear_rounded, color: AppColors.secondary, size: 18),
+                                        onPressed: () {
+                                          controller.clear();
+                                          setState(() {
+                                            _selectedFloor = null;
+                                          });
+                                        },
+                                      )
+                                    : const Icon(Icons.arrow_drop_down_rounded, color: AppColors.secondary),
+                              ),
+                              enabled: !_isWaitingForSignature,
+                              onFieldSubmitted: (v) => onFieldSubmitted(),
+                            );
+                          },
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 6.0,
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white,
+                                child: Container(
+                                  width: 400,
+                                  constraints: const BoxConstraints(maxHeight: 200),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.secondary.withOpacity(0.1)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListView.separated(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    separatorBuilder: (context, index) => Divider(
+                                      height: 1,
+                                      color: AppColors.secondary.withOpacity(0.05),
+                                    ),
+                                    itemBuilder: (BuildContext context, int index) {
+                                      final String option = options.elementAt(index);
+                                      return InkWell(
+                                        onTap: () => onSelected(option),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          child: Text(
+                                            option,
+                                            style: const TextStyle(
+                                              fontFamily: 'Manrope',
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.secondary,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: _purpose,
@@ -388,6 +474,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         hostId: _selectedHost?.id,
         purpose: _purpose,
         timestamp: DateTime.now(),
+        notes: _selectedFloor != null ? 'Floor: $_selectedFloor' : null,
       ),
     );
   }
@@ -422,6 +509,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         createdAt: DateTime.now(),
         signatureB64: session.signatureB64,
         appointmentId: _appointmentId,
+        notes: _selectedFloor != null ? 'Floor: $_selectedFloor' : null,
       );
 
       await ref.read(visitRepositoryProvider).createVisit(visit);
@@ -466,6 +554,8 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
          _nameController.clear();
          _phoneController.clear();
          _companyController.clear();
+         _floorController.clear();
+         _selectedFloor = null;
          _selectedHost = null;
       });
 
@@ -499,6 +589,8 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
       _phoneController.clear();
       _companyController.clear();
       _notesController.clear();
+      _floorController.clear();
+      _selectedFloor = null;
       _selectedHost = null;
       _purpose = 'Meeting';
     });
