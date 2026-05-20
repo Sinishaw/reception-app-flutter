@@ -237,7 +237,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             try {
-                              await ref.read(sessionRepositoryProvider).clearSession(stationId);
+                              await ref.read(sessionRepositoryProvider).updateSession(
+                                stationId,
+                                const ActiveSession(screen: 'terminated'),
+                              );
                               await ref.read(stationIdProvider.notifier).clear();
                               await ref.read(assignedFloorProvider.notifier).clear();
                               await ref.read(pairingTimeProvider.notifier).clear();

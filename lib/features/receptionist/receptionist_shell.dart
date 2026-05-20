@@ -8,6 +8,7 @@ import '../appointments/appointments_screen.dart';
 import '../settings/settings_screen.dart';
 import '../pairing/station_provider.dart';
 import '../../shared/repositories/providers.dart';
+import '../../shared/models/station.dart';
 
 class ReceptionistShell extends ConsumerStatefulWidget {
   const ReceptionistShell({super.key});
@@ -328,8 +329,11 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
     }
 
     try {
-      // Force refresh the tablet by clearing the session to idle
-      await ref.read(sessionRepositoryProvider).clearSession(stationId);
+      // Force refresh the tablet by resetting the session to idle
+      await ref.read(sessionRepositoryProvider).updateSession(
+        stationId,
+        const ActiveSession(screen: 'idle'),
+      );
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

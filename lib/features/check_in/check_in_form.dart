@@ -581,7 +581,10 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
   Future<void> _clearForm() async {
     final stationId = ref.read(stationIdProvider);
     if (stationId != null) {
-      await ref.read(sessionRepositoryProvider).clearSession(stationId);
+      await ref.read(sessionRepositoryProvider).updateSession(
+        stationId,
+        const ActiveSession(screen: 'idle'),
+      );
     }
     setState(() {
       _isWaitingForSignature = false;
