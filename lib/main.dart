@@ -5,12 +5,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme.dart';
 import 'features/receptionist/receptionist_shell.dart';
 import 'features/tablet_display/tablet_shell.dart';
+import 'features/pairing/station_provider.dart';
+
+import 'package:flutter/services.dart';
 
 import 'features/notifications/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
+
+  final prefs = await SharedPreferences.getInstance();
 
   if (!kUseMockFirestore) {
     // In real mode, initialize Firebase
@@ -35,14 +40,27 @@ void main() async {
     if (uri.queryParameters['mode'] == 'tablet') {
       appMode = 'tablet';
       if (uri.queryParameters.containsKey('stationId')) {
-        final prefs = await SharedPreferences.getInstance();
         await prefs.setString('station_id', uri.queryParameters['stationId']!);
+        if (uri.queryParameters.containsKey('floor')) {
+          await prefs.setString('assigned_floor', uri.queryParameters['floor']!);
+        }
+        if (uri.queryParameters.containsKey('sessionId')) {
+          await prefs.setString('session_id', uri.queryParameters['sessionId']!);
+        }
+        // Clear stationId from URL to prevent automatic re-pairing on page refresh
+        SystemNavigator.routeInformationUpdated(
+          uri: Uri.parse('/?mode=tablet'),
+          replace: true,
+        );
       }
     }
   }
   
   runApp(
     ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
       child: ReceptionApp(mode: appMode),
     ),
   );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
-import '../check_in/check_in_form.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../visit_log/visit_log_screen.dart';
 import '../appointments/appointments_screen.dart';
@@ -332,7 +331,11 @@ class _ReceptionistShellState extends ConsumerState<ReceptionistShell> {
       // Force refresh the tablet by resetting the session to idle
       await ref.read(sessionRepositoryProvider).updateSession(
         stationId,
-        const ActiveSession(screen: 'idle'),
+        ActiveSession(
+          screen: 'idle',
+          sessionId: ref.read(sessionIdProvider),
+          assignedFloor: ref.read(assignedFloorProvider),
+        ),
       );
       
       if (mounted) {

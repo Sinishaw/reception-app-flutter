@@ -212,7 +212,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(height: 16),
                       Builder(builder: (context) {
                         final hostUrl = Uri.base.origin;
-                        final qrData = '$hostUrl/?mode=tablet&stationId=$stationId';
+                        final floor = ref.watch(assignedFloorProvider) ?? '';
+                        final sessionId = ref.watch(sessionIdProvider) ?? '';
+                        final qrData = '$hostUrl/?mode=tablet&stationId=$stationId&floor=$floor&sessionId=$sessionId';
                         return Center(
                           child: Container(
                             decoration: BoxDecoration(
@@ -243,6 +245,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               );
                               await ref.read(stationIdProvider.notifier).clear();
                               await ref.read(assignedFloorProvider.notifier).clear();
+                              await ref.read(sessionIdProvider.notifier).clear();
                               await ref.read(pairingTimeProvider.notifier).clear();
                               
                               setState(() {
@@ -377,15 +380,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             final stationVal = _selectedStationId!;
                             final floorVal = _selectedFloor!;
                             final now = DateTime.now().toIso8601String();
+                            final sessionId = '${DateTime.now().millisecondsSinceEpoch}_${stationVal.replaceAll(' ', '')}';
 
                             await ref.read(stationIdProvider.notifier).set(stationVal);
                             await ref.read(assignedFloorProvider.notifier).set(floorVal);
                             await ref.read(pairingTimeProvider.notifier).set(now);
+                            await ref.read(sessionIdProvider.notifier).set(sessionId);
 
                             try {
                               await ref.read(sessionRepositoryProvider).updateSession(
                                 stationVal,
-                                const ActiveSession(screen: 'idle'),
+                                ActiveSession(
+                                  screen: 'idle',
+                                  sessionId: sessionId,
+                                  assignedFloor: floorVal,
+                                ),
                               );
                             } catch (e) {
                               // Ignore

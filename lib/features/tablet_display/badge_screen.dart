@@ -43,7 +43,11 @@ class _BadgeScreenState extends ConsumerState<BadgeScreen> {
     if (stationId != null) {
       await ref.read(sessionRepositoryProvider).updateSession(
         stationId,
-        const ActiveSession(screen: 'idle'),
+        ActiveSession(
+          screen: 'idle',
+          sessionId: ref.read(sessionIdProvider),
+          assignedFloor: ref.read(assignedFloorProvider),
+        ),
       );
     }
   }

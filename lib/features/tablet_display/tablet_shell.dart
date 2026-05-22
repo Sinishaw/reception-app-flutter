@@ -22,9 +22,16 @@ class TabletShell extends ConsumerWidget {
     ref.listen<AsyncValue<ActiveSession?>>(activeSessionProvider, (previous, next) {
       if (next.hasValue) {
         final session = next.value;
-        if (session != null && session.screen == 'terminated') {
+        final localSessionId = ref.read(sessionIdProvider);
+        final bool isSessionTerminated = session == null || session.screen == 'terminated';
+        final bool isSessionIdMismatch = session != null && session.sessionId != localSessionId;
+
+        if (isSessionTerminated || isSessionIdMismatch) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(stationIdProvider.notifier).clear();
+            ref.read(assignedFloorProvider.notifier).clear();
+            ref.read(sessionIdProvider.notifier).clear();
+            ref.read(pairingTimeProvider.notifier).clear();
           });
         }
       }

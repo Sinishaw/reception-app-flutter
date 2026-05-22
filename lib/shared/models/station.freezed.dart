@@ -309,6 +309,8 @@ mixin _$ActiveSession {
   String? get signatureB64 => throw _privateConstructorUsedError;
   BadgePayload? get badgePayload => throw _privateConstructorUsedError;
   String? get receptionistUid => throw _privateConstructorUsedError;
+  String? get sessionId => throw _privateConstructorUsedError;
+  String? get assignedFloor => throw _privateConstructorUsedError;
 
   /// Serializes this ActiveSession to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -339,6 +341,8 @@ abstract class $ActiveSessionCopyWith<$Res> {
     String? signatureB64,
     BadgePayload? badgePayload,
     String? receptionistUid,
+    String? sessionId,
+    String? assignedFloor,
   });
 
   $BadgePayloadCopyWith<$Res>? get badgePayload;
@@ -370,6 +374,8 @@ class _$ActiveSessionCopyWithImpl<$Res, $Val extends ActiveSession>
     Object? signatureB64 = freezed,
     Object? badgePayload = freezed,
     Object? receptionistUid = freezed,
+    Object? sessionId = freezed,
+    Object? assignedFloor = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -417,6 +423,14 @@ class _$ActiveSessionCopyWithImpl<$Res, $Val extends ActiveSession>
                 ? _value.receptionistUid
                 : receptionistUid // ignore: cast_nullable_to_non_nullable
                       as String?,
+            sessionId: freezed == sessionId
+                ? _value.sessionId
+                : sessionId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            assignedFloor: freezed == assignedFloor
+                ? _value.assignedFloor
+                : assignedFloor // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -458,6 +472,8 @@ abstract class _$$ActiveSessionImplCopyWith<$Res>
     String? signatureB64,
     BadgePayload? badgePayload,
     String? receptionistUid,
+    String? sessionId,
+    String? assignedFloor,
   });
 
   @override
@@ -489,6 +505,8 @@ class __$$ActiveSessionImplCopyWithImpl<$Res>
     Object? signatureB64 = freezed,
     Object? badgePayload = freezed,
     Object? receptionistUid = freezed,
+    Object? sessionId = freezed,
+    Object? assignedFloor = freezed,
   }) {
     return _then(
       _$ActiveSessionImpl(
@@ -536,6 +554,14 @@ class __$$ActiveSessionImplCopyWithImpl<$Res>
             ? _value.receptionistUid
             : receptionistUid // ignore: cast_nullable_to_non_nullable
                   as String?,
+        sessionId: freezed == sessionId
+            ? _value.sessionId
+            : sessionId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        assignedFloor: freezed == assignedFloor
+            ? _value.assignedFloor
+            : assignedFloor // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -557,6 +583,8 @@ class _$ActiveSessionImpl implements _ActiveSession {
     this.signatureB64,
     this.badgePayload,
     this.receptionistUid,
+    this.sessionId,
+    this.assignedFloor,
   });
 
   factory _$ActiveSessionImpl.fromJson(Map<String, dynamic> json) =>
@@ -588,10 +616,14 @@ class _$ActiveSessionImpl implements _ActiveSession {
   final BadgePayload? badgePayload;
   @override
   final String? receptionistUid;
+  @override
+  final String? sessionId;
+  @override
+  final String? assignedFloor;
 
   @override
   String toString() {
-    return 'ActiveSession(screen: $screen, status: $status, visitorName: $visitorName, hostName: $hostName, hostId: $hostId, purpose: $purpose, notes: $notes, timestamp: $timestamp, signatureB64: $signatureB64, badgePayload: $badgePayload, receptionistUid: $receptionistUid)';
+    return 'ActiveSession(screen: $screen, status: $status, visitorName: $visitorName, hostName: $hostName, hostId: $hostId, purpose: $purpose, notes: $notes, timestamp: $timestamp, signatureB64: $signatureB64, badgePayload: $badgePayload, receptionistUid: $receptionistUid, sessionId: $sessionId, assignedFloor: $assignedFloor)';
   }
 
   @override
@@ -615,7 +647,11 @@ class _$ActiveSessionImpl implements _ActiveSession {
             (identical(other.badgePayload, badgePayload) ||
                 other.badgePayload == badgePayload) &&
             (identical(other.receptionistUid, receptionistUid) ||
-                other.receptionistUid == receptionistUid));
+                other.receptionistUid == receptionistUid) &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
+            (identical(other.assignedFloor, assignedFloor) ||
+                other.assignedFloor == assignedFloor));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -633,6 +669,8 @@ class _$ActiveSessionImpl implements _ActiveSession {
     signatureB64,
     badgePayload,
     receptionistUid,
+    sessionId,
+    assignedFloor,
   );
 
   /// Create a copy of ActiveSession
@@ -662,6 +700,8 @@ abstract class _ActiveSession implements ActiveSession {
     final String? signatureB64,
     final BadgePayload? badgePayload,
     final String? receptionistUid,
+    final String? sessionId,
+    final String? assignedFloor,
   }) = _$ActiveSessionImpl;
 
   factory _ActiveSession.fromJson(Map<String, dynamic> json) =
@@ -690,6 +730,10 @@ abstract class _ActiveSession implements ActiveSession {
   BadgePayload? get badgePayload;
   @override
   String? get receptionistUid;
+  @override
+  String? get sessionId;
+  @override
+  String? get assignedFloor;
 
   /// Create a copy of ActiveSession
   /// with the given fields replaced by the non-null parameter values.

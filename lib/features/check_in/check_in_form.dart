@@ -475,6 +475,8 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         purpose: _purpose,
         timestamp: DateTime.now(),
         notes: _selectedFloor != null ? 'Floor: $_selectedFloor' : null,
+        sessionId: ref.read(sessionIdProvider),
+        assignedFloor: ref.read(assignedFloorProvider),
       ),
     );
   }
@@ -545,6 +547,8 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
             checkInTime: visit.checkInTime,
             qrData: visitId,
           ),
+          sessionId: ref.read(sessionIdProvider),
+          assignedFloor: ref.read(assignedFloorProvider),
         ),
       );
 
@@ -583,7 +587,11 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
     if (stationId != null) {
       await ref.read(sessionRepositoryProvider).updateSession(
         stationId,
-        const ActiveSession(screen: 'idle'),
+        ActiveSession(
+          screen: 'idle',
+          sessionId: ref.read(sessionIdProvider),
+          assignedFloor: ref.read(assignedFloorProvider),
+        ),
       );
     }
     setState(() {
