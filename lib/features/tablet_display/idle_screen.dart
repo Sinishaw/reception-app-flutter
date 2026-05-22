@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
 import '../pairing/station_provider.dart';
+import '../pairing/station_setup_screen.dart';
 
 class IdleScreen extends ConsumerStatefulWidget {
   const IdleScreen({super.key});
@@ -67,6 +68,33 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
             ),
           ),
           
+          // Subtle pairings settings button at top right
+          Positioned(
+            top: 24,
+            right: 24,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.settings_outlined,
+                  color: AppColors.secondary,
+                  size: 20,
+                ),
+                tooltip: 'Pairing Setup',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const StationSetupScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          
           // Main content
           Center(
             child: Column(
@@ -115,7 +143,7 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
                 
                 // Welcome tag
                 Text(
-                  'Welcome to MMCY',
+                  stationId != null ? 'Welcome to MMCY' : 'No active session or link device',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.secondary.withOpacity(0.8),
@@ -130,7 +158,9 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
                     return Opacity(
                       opacity: _opacityAnimation.value,
                       child: Text(
-                        'Please wait for the receptionist to assist you.',
+                        stationId != null
+                            ? 'Please wait for the receptionist to assist you.'
+                            : 'Please pair this tablet in Settings on the main Reception Desk.',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: AppColors.secondary.withOpacity(0.6),
                           fontWeight: FontWeight.w500,
@@ -176,14 +206,14 @@ class _IdleScreenState extends ConsumerState<IdleScreen> with SingleTickerProvid
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.green,
+                      decoration: BoxDecoration(
+                        color: stationId != null ? Colors.green : Colors.grey,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      stationId != null ? 'Station ID: $stationId' : 'Station: Pairing Needed',
+                      stationId != null ? 'Station ID: $stationId' : 'Not Connected',
                       style: TextStyle(
                         color: AppColors.secondary.withOpacity(0.8),
                         fontSize: 12,

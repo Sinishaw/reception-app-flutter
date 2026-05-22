@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_annotation_target
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'timestamp_converter.dart';
 
@@ -33,6 +35,8 @@ class ActiveSession with _$ActiveSession {
     String? signatureB64,
     BadgePayload? badgePayload,
     String? receptionistUid,
+    String? sessionId,
+    String? assignedFloor,
   }) = _ActiveSession;
 
   factory ActiveSession.fromJson(Map<String, dynamic> json) => _$ActiveSessionFromJson(json);

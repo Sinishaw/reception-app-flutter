@@ -475,6 +475,8 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         purpose: _purpose,
         timestamp: DateTime.now(),
         notes: _selectedFloor != null ? 'Floor: $_selectedFloor' : null,
+        sessionId: ref.read(sessionIdProvider),
+        assignedFloor: ref.read(assignedFloorProvider),
       ),
     );
   }
@@ -545,6 +547,8 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
             checkInTime: visit.checkInTime,
             qrData: visitId,
           ),
+          sessionId: ref.read(sessionIdProvider),
+          assignedFloor: ref.read(assignedFloorProvider),
         ),
       );
 
@@ -581,7 +585,14 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
   Future<void> _clearForm() async {
     final stationId = ref.read(stationIdProvider);
     if (stationId != null) {
-      await ref.read(sessionRepositoryProvider).clearSession(stationId);
+      await ref.read(sessionRepositoryProvider).updateSession(
+        stationId,
+        ActiveSession(
+          screen: 'idle',
+          sessionId: ref.read(sessionIdProvider),
+          assignedFloor: ref.read(assignedFloorProvider),
+        ),
+      );
     }
     setState(() {
       _isWaitingForSignature = false;

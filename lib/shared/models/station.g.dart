@@ -41,6 +41,8 @@ _$ActiveSessionImpl _$$ActiveSessionImplFromJson(Map<String, dynamic> json) =>
           ? null
           : BadgePayload.fromJson(json['badgePayload'] as Map<String, dynamic>),
       receptionistUid: json['receptionistUid'] as String?,
+      sessionId: json['sessionId'] as String?,
+      assignedFloor: json['assignedFloor'] as String?,
     );
 
 Map<String, dynamic> _$$ActiveSessionImplToJson(_$ActiveSessionImpl instance) =>
@@ -56,6 +58,8 @@ Map<String, dynamic> _$$ActiveSessionImplToJson(_$ActiveSessionImpl instance) =>
       'signatureB64': instance.signatureB64,
       'badgePayload': instance.badgePayload?.toJson(),
       'receptionistUid': instance.receptionistUid,
+      'sessionId': instance.sessionId,
+      'assignedFloor': instance.assignedFloor,
     };
 
 _$BadgePayloadImpl _$$BadgePayloadImplFromJson(Map<String, dynamic> json) =>

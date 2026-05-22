@@ -4,7 +4,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/theme.dart';
 import '../pairing/station_provider.dart';
 import '../../shared/services/floor_service.dart';
+import '../../shared/services/station_service.dart';
 import '../../shared/repositories/providers.dart';
+import '../../shared/models/station.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -15,23 +17,63 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _stationIdController = TextEditingController();
+  final _floorController = TextEditingController();
+
+  String? _selectedStationId;
+  String? _selectedFloor;
 
   @override
   void initState() {
     super.initState();
-    // Initialize controller with current state after layout
+    // Initialize controller and local states with current state after layout
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentId = ref.read(stationIdProvider);
-      if (currentId != null) {
-        _stationIdController.text = currentId;
-      }
+      final currentFloor = ref.read(assignedFloorProvider);
+      setState(() {
+        _selectedStationId = currentId;
+        _selectedFloor = currentFloor;
+        if (currentId != null) {
+          _stationIdController.text = currentId;
+        }
+        if (currentFloor != null) {
+          _floorController.text = currentFloor;
+        }
+      });
     });
+
+    _stationIdController.addListener(_onInputsChanged);
+    _floorController.addListener(_onInputsChanged);
+  }
+
+  @override
+  void dispose() {
+    _stationIdController.dispose();
+    _floorController.dispose();
+    super.dispose();
+  }
+
+  void _onInputsChanged() {
+    final stationText = _stationIdController.text.trim();
+    final floorText = _floorController.text.trim();
+    setState(() {
+      _selectedStationId = stationText.isEmpty ? null : stationText;
+      _selectedFloor = floorText.isEmpty ? null : floorText;
+    });
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
   @override
   Widget build(BuildContext context) {
     final stationId = ref.watch(stationIdProvider);
     final assignedFloor = ref.watch(assignedFloorProvider);
+
+    final bool isFormValid = _selectedStationId != null && _selectedFloor != null;
 
     return Padding(
       padding: const EdgeInsets.all(32.0),
@@ -47,229 +89,338 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Device Pairing', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    const Text('Enter a Station ID to link this Receptionist App with a Tablet App. They must both use the same ID.'),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _stationIdController,
-                            decoration: const InputDecoration(
-                              labelText: 'Station ID (e.g., floor2-reception)',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        ElevatedButton(
-                          onPressed: () async {
-                            final id = _stationIdController.text.trim();
-                            if (id.isNotEmpty) {
-                              await ref.read(stationIdProvider.notifier).set(id);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Station ID saved successfully')),
-                                );
-                              }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          ),
-                          child: const Text('Save'),
-                        ),
-                        const SizedBox(width: 8),
-                        OutlinedButton(
-                          onPressed: () async {
-                            await ref.read(stationIdProvider.notifier).clear();
-                            _stationIdController.clear();
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Station ID cleared')),
-                              );
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          ),
-                          child: const Text('Clear'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
                     if (stationId != null) ...[
-                      Text('Current Station ID: $stationId', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
+                      // Active Session Mode
                       Row(
                         children: [
-                          const Icon(Icons.tablet_android_rounded, color: AppColors.secondary),
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                           const SizedBox(width: 12),
                           const Text(
-                            'Active Tablet Remote Session Control:',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary),
-                          ),
-                          const Spacer(),
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              try {
-                                await ref.read(sessionRepositoryProvider).clearSession(stationId);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Active tablet session terminated successfully. Tablet has returned to idle.'),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Failed to terminate session: $e'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                            icon: const Icon(Icons.cancel_presentation_rounded, size: 18),
-                            label: const Text('Terminate Active Session'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.redAccent,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                            'Active Reception Session',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.secondary,
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 24),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Station ID',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  stationId,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.secondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Assigned Floor',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  assignedFloor ?? 'Not Assigned',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Session Active Duration',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                StreamBuilder<int>(
+                                  stream: Stream.periodic(const Duration(seconds: 1), (x) => x),
+                                  builder: (context, snapshot) {
+                                    final pairingTimeStr = ref.watch(pairingTimeProvider);
+                                    if (pairingTimeStr == null) return const Text('--:--:--');
+                                    
+                                    final pairingTime = DateTime.tryParse(pairingTimeStr);
+                                    if (pairingTime == null) return const Text('--:--:--');
+                                    
+                                    final diff = DateTime.now().difference(pairingTime);
+                                    return Row(
+                                      children: [
+                                        const Icon(Icons.timer_outlined, color: Colors.green, size: 16),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          _formatDuration(diff),
+                                          style: const TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(),
                       const SizedBox(height: 16),
-                      const Text('Scan this QR code from your phone/tablet camera to open the app and pair automatically:', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
+                      const Text(
+                        'Scan this QR code from your tablet device camera to open and pair automatically:',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary),
+                      ),
+                      const SizedBox(height: 16),
                       Builder(builder: (context) {
                         final hostUrl = Uri.base.origin;
-                        final qrData = '$hostUrl/?mode=tablet&stationId=$stationId';
-                        return Container(
-                          color: Colors.white,
-                          padding: const EdgeInsets.all(16),
-                          child: QrImageView(
-                            data: qrData,
-                            version: QrVersions.auto,
-                            size: 200.0,
+                        final floor = ref.watch(assignedFloorProvider) ?? '';
+                        final sessionId = ref.watch(sessionIdProvider) ?? '';
+                        final qrData = '$hostUrl/?mode=tablet&stationId=$stationId&floor=$floor&sessionId=$sessionId';
+                        return Center(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.secondary.withOpacity(0.08),
+                                width: 1,
+                              ),
+                            ),
+                            padding: const EdgeInsets.all(24),
+                            child: QrImageView(
+                              data: qrData,
+                              version: QrVersions.auto,
+                              size: 200.0,
+                            ),
                           ),
                         );
                       }),
-                    ],
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Text('Floor Assignment', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    const Text('Assign the physical floor location of this station (e.g., Floor 2, Penthouse). This is retrieved asynchronously from the corporate database.'),
-                    const SizedBox(height: 16),
-                    Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) async {
-                        return await FloorService.fetchFloors(textEditingValue.text);
-                      },
-                      onSelected: (String selection) async {
-                        await ref.read(assignedFloorProvider.notifier).set(selection);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Station floor set to $selection')),
-                          );
-                        }
-                      },
-                      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                        if (controller.text.isEmpty && assignedFloor != null) {
-                          controller.text = assignedFloor;
-                        }
-                        return TextFormField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          decoration: InputDecoration(
-                            labelText: 'Physical Floor Location',
-                            hintText: 'Type to search floor directory...',
-                            prefixIcon: const Icon(Icons.layers_rounded, color: AppColors.primary),
-                            suffixIcon: const Icon(Icons.arrow_drop_down_rounded, color: AppColors.secondary),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: AppColors.surfaceContainerLow,
-                          ),
-                          onFieldSubmitted: (v) => onFieldSubmitted(),
-                        );
-                      },
-                      optionsViewBuilder: (context, onSelected, options) {
-                        return Align(
-                          alignment: Alignment.topLeft,
-                          child: Material(
-                            elevation: 6.0,
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white,
-                            child: Container(
-                              width: 400, // Matches the textfield bounds
-                              constraints: const BoxConstraints(maxHeight: 200),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.secondary.withOpacity(0.1)),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: ListView.separated(
-                                padding: EdgeInsets.zero,
-                                shrinkWrap: true,
-                                itemCount: options.length,
-                                separatorBuilder: (context, index) => Divider(
-                                  height: 1,
-                                  color: AppColors.secondary.withOpacity(0.05),
-                                ),
-                                itemBuilder: (BuildContext context, int index) {
-                                  final String option = options.elementAt(index);
-                                  return InkWell(
-                                    onTap: () => onSelected(option),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                      child: Text(
-                                        option,
-                                        style: const TextStyle(
-                                          fontFamily: 'Manrope',
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.secondary,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    if (assignedFloor != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            'Currently assigned: $assignedFloor',
-                            style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                          ),
-                          const Spacer(),
-                          TextButton.icon(
-                            onPressed: () async {
+                      const SizedBox(height: 24),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            try {
+                              await ref.read(sessionRepositoryProvider).updateSession(
+                                stationId,
+                                const ActiveSession(screen: 'terminated'),
+                              );
+                              await ref.read(stationIdProvider.notifier).clear();
                               await ref.read(assignedFloorProvider.notifier).clear();
+                              await ref.read(sessionIdProvider.notifier).clear();
+                              await ref.read(pairingTimeProvider.notifier).clear();
+                              
+                              setState(() {
+                                _stationIdController.clear();
+                                _floorController.clear();
+                                _selectedStationId = null;
+                                _selectedFloor = null;
+                              });
+
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Floor assignment cleared')),
+                                  const SnackBar(
+                                    content: Text('Session terminated and device pairing cleared successfully!'),
+                                    backgroundColor: Colors.green,
+                                  ),
                                 );
                               }
-                            },
-                            icon: const Icon(Icons.clear_rounded, size: 16, color: Colors.redAccent),
-                            label: const Text('Clear Floor', style: TextStyle(color: Colors.redAccent)),
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to terminate session: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.cancel_presentation_rounded, size: 20),
+                          label: const Text('Terminate Active Session'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ],
+                        ),
+                      ),
+                    ] else ...[
+                      // Create Session Mode
+                      const Text(
+                        'Create New Reception Session',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'To initialize a reception session, select a Station ID and Floor Assignment from the corporate directory.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Station ID Autocomplete
+                      const Text('1. Station ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 8),
+                      Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) async {
+                          return await StationService.fetchStations(textEditingValue.text);
+                        },
+                        onSelected: (String selection) {
+                          setState(() {
+                            _selectedStationId = selection;
+                            _stationIdController.text = selection;
+                          });
+                        },
+                        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                          if (controller.text.isEmpty && _selectedStationId != null) {
+                            controller.text = _selectedStationId!;
+                          }
+                          return TextFormField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            decoration: InputDecoration(
+                              labelText: 'Search & Select Station ID',
+                              hintText: 'Type to search station directory...',
+                              prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: AppColors.surfaceContainerLow,
+                            ),
+                            onFieldSubmitted: (v) => onFieldSubmitted(),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Floor Assignment Autocomplete
+                      const Text('2. Floor Assignment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 8),
+                      Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) async {
+                          return await FloorService.fetchFloors(textEditingValue.text);
+                        },
+                        onSelected: (String selection) {
+                          setState(() {
+                            _selectedFloor = selection;
+                            _floorController.text = selection;
+                          });
+                        },
+                        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                          if (controller.text.isEmpty && _selectedFloor != null) {
+                            controller.text = _selectedFloor!;
+                          }
+                          return TextFormField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            decoration: InputDecoration(
+                              labelText: 'Physical Floor Location',
+                              hintText: 'Type to search floor directory...',
+                              prefixIcon: const Icon(Icons.layers_rounded, color: AppColors.primary),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: AppColors.surfaceContainerLow,
+                            ),
+                            onFieldSubmitted: (v) => onFieldSubmitted(),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: isFormValid ? () async {
+                            final stationVal = _selectedStationId!;
+                            final floorVal = _selectedFloor!;
+                            final now = DateTime.now().toIso8601String();
+                            final sessionId = '${DateTime.now().millisecondsSinceEpoch}_${stationVal.replaceAll(' ', '')}';
+
+                            await ref.read(stationIdProvider.notifier).set(stationVal);
+                            await ref.read(assignedFloorProvider.notifier).set(floorVal);
+                            await ref.read(pairingTimeProvider.notifier).set(now);
+                            await ref.read(sessionIdProvider.notifier).set(sessionId);
+
+                            try {
+                              await ref.read(sessionRepositoryProvider).updateSession(
+                                stationVal,
+                                ActiveSession(
+                                  screen: 'idle',
+                                  sessionId: sessionId,
+                                  assignedFloor: floorVal,
+                                ),
+                              );
+                            } catch (e) {
+                              // Ignore
+                            }
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Session created successfully for $stationVal on floor $floorVal!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } : null,
+                          icon: const Icon(Icons.add_task_rounded, size: 20),
+                          label: const Text('Create Session'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: isFormValid ? 4 : 0,
+                          ),
+                        ),
                       ),
                     ],
                   ],

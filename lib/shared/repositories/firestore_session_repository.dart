@@ -16,8 +16,10 @@ class FirestoreSessionRepository implements SessionRepository {
         return null;
       }
       final data = snapshot.data()!;
-      // Handle the nested activeSession map if it exists, or the document itself
-      final sessionData = data['activeSession'] as Map<String, dynamic>? ?? data;
+      if (!data.containsKey('activeSession') || data['activeSession'] == null) {
+        return null;
+      }
+      final sessionData = data['activeSession'] as Map<String, dynamic>;
       return ActiveSession.fromJson(sessionData);
     });
   }
@@ -33,10 +35,7 @@ class FirestoreSessionRepository implements SessionRepository {
   @override
   Future<void> clearSession(String stationId) async {
     await _firestore.collection('stations').doc(stationId).update({
-      'activeSession': {
-        'screen': 'idle',
-        'timestamp': FieldValue.serverTimestamp(),
-      },
+      'activeSession': FieldValue.delete(),
       'lastUpdated': FieldValue.serverTimestamp(),
     });
   }

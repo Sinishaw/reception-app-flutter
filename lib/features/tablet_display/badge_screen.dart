@@ -41,7 +41,14 @@ class _BadgeScreenState extends ConsumerState<BadgeScreen> {
   Future<void> _resetSession() async {
     final stationId = ref.read(stationIdProvider);
     if (stationId != null) {
-      await ref.read(sessionRepositoryProvider).clearSession(stationId);
+      await ref.read(sessionRepositoryProvider).updateSession(
+        stationId,
+        ActiveSession(
+          screen: 'idle',
+          sessionId: ref.read(sessionIdProvider),
+          assignedFloor: ref.read(assignedFloorProvider),
+        ),
+      );
     }
   }
 
