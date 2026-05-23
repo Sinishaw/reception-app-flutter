@@ -11,11 +11,13 @@ import '../../core/theme.dart';
 class IdScannerSection extends StatefulWidget {
   final TextEditingController nameController;
   final ValueChanged<String?> onUrlChanged;
+  final String? initialUrl;
 
   const IdScannerSection({
     super.key,
     required this.nameController,
     required this.onUrlChanged,
+    this.initialUrl,
   });
 
   @override
@@ -47,6 +49,49 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
     _pulseAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    _loadInitialUrl();
+  }
+
+  void _loadInitialUrl() {
+    if (widget.initialUrl != null && widget.initialUrl!.isNotEmpty) {
+      _scannedFileUrl = widget.initialUrl;
+      _scannerStatus = 'success';
+      try {
+        final uri = Uri.parse(widget.initialUrl!);
+        final pathSegments = uri.pathSegments;
+        if (pathSegments.isNotEmpty) {
+          final lastSegment = pathSegments.last;
+          if (lastSegment.contains('/')) {
+            _scannedFileName = Uri.decodeFull(lastSegment.split('/').last);
+          } else {
+            _scannedFileName = Uri.decodeFull(lastSegment);
+          }
+        } else {
+          _scannedFileName = 'scanned_id.pdf';
+        }
+      } catch (e) {
+        _scannedFileName = 'scanned_id.pdf';
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant IdScannerSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialUrl != oldWidget.initialUrl) {
+      if (widget.initialUrl != null && widget.initialUrl!.isNotEmpty) {
+        setState(() {
+          _loadInitialUrl();
+        });
+      } else {
+        setState(() {
+          _scannedFileUrl = null;
+          _scannedFileName = null;
+          _scannerStatus = _isScannerInitialized ? 'watching' : 'idle';
+        });
+      }
+    }
   }
 
   @override

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:js' as js;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +7,7 @@ import '../../shared/repositories/providers.dart';
 import '../../shared/models/visit.dart';
 import '../../shared/models/staff.dart';
 import '../check_in/check_in_form.dart';
+import '../check_in/id_scanner_section.dart';
 
 class VisitLogScreen extends ConsumerStatefulWidget {
   const VisitLogScreen({super.key});
@@ -439,125 +439,143 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
     Staff? selectedHost;
     String purpose = visit.purpose;
     final formKey = GlobalKey<FormState>();
+    String? editedScannedIdUrl = visit.scannedIdUrl;
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Edit Visit - ${visit.visitorName}'),
-          content: Consumer(
-            builder: (context, ref, child) {
-              final staffAsync = ref.watch(_staffListProvider);
-              return staffAsync.when(
-                data: (staffList) {
-                  try {
-                    selectedHost ??= staffList.firstWhere((s) => s.id == visit.hostId);
-                  } catch (_) {
-                    selectedHost ??= staffList.isNotEmpty ? staffList.first : null;
-                  }
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text('Edit Visit - ${visit.visitorName}'),
+              content: Consumer(
+                builder: (context, ref, child) {
+                  final staffAsync = ref.watch(_staffListProvider);
+                  return staffAsync.when(
+                    data: (staffList) {
+                      try {
+                        selectedHost ??= staffList.firstWhere((s) => s.id == visit.hostId);
+                      } catch (_) {
+                        selectedHost ??= staffList.isNotEmpty ? staffList.first : null;
+                      }
 
-                  return Form(
-                    key: formKey,
-                    child: SingleChildScrollView(
-                      child: SizedBox(
-                        width: 500,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextFormField(
-                              controller: nameController,
-                              decoration: const InputDecoration(labelText: 'Visitor Full Name', border: OutlineInputBorder()),
-                              validator: (v) => v!.isEmpty ? 'Required' : null,
+                      return Form(
+                        key: formKey,
+                        child: SingleChildScrollView(
+                          child: SizedBox(
+                            width: 500,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextFormField(
+                                  controller: nameController,
+                                  decoration: const InputDecoration(labelText: 'Visitor Full Name', border: OutlineInputBorder()),
+                                  validator: (v) => v!.isEmpty ? 'Required' : null,
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: phoneController,
+                                  decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                                  validator: (v) => v!.isEmpty ? 'Required' : null,
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: companyController,
+                                  decoration: const InputDecoration(labelText: 'Company (Optional)', border: OutlineInputBorder()),
+                                ),
+                                const SizedBox(height: 16),
+                                DropdownButtonFormField<Staff>(
+                                  value: selectedHost,
+                                  decoration: const InputDecoration(labelText: 'Host', border: OutlineInputBorder()),
+                                  items: staffList.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
+                                  onChanged: (v) => selectedHost = v,
+                                  validator: (v) => v == null ? 'Required' : null,
+                                ),
+                                const SizedBox(height: 16),
+                                DropdownButtonFormField<String>(
+                                  value: ['Meeting', 'Delivery', 'Interview', 'Other'].contains(purpose) ? purpose : 'Meeting',
+                                  decoration: const InputDecoration(labelText: 'Purpose', border: OutlineInputBorder()),
+                                  items: ['Meeting', 'Delivery', 'Interview', 'Other']
+                                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                                      .toList(),
+                                  onChanged: (v) {
+                                    if (v != null) purpose = v;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: durationController,
+                                  decoration: const InputDecoration(labelText: 'Expected Duration', border: OutlineInputBorder()),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: notesController,
+                                  decoration: const InputDecoration(labelText: 'Notes (Optional)', border: OutlineInputBorder()),
+                                  maxLines: 2,
+                                ),
+                                const SizedBox(height: 24),
+                                const Divider(),
+                                const SizedBox(height: 16),
+                                IdScannerSection(
+                                  nameController: nameController,
+                                  initialUrl: editedScannedIdUrl,
+                                  onUrlChanged: (url) {
+                                    setDialogState(() {
+                                      editedScannedIdUrl = url;
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: phoneController,
-                              decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
-                              validator: (v) => v!.isEmpty ? 'Required' : null,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: companyController,
-                              decoration: const InputDecoration(labelText: 'Company (Optional)', border: OutlineInputBorder()),
-                            ),
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<Staff>(
-                              value: selectedHost,
-                              decoration: const InputDecoration(labelText: 'Host', border: OutlineInputBorder()),
-                              items: staffList.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
-                              onChanged: (v) => selectedHost = v,
-                              validator: (v) => v == null ? 'Required' : null,
-                            ),
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<String>(
-                              value: ['Meeting', 'Delivery', 'Interview', 'Other'].contains(purpose) ? purpose : 'Meeting',
-                              decoration: const InputDecoration(labelText: 'Purpose', border: OutlineInputBorder()),
-                              items: ['Meeting', 'Delivery', 'Interview', 'Other']
-                                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                                  .toList(),
-                              onChanged: (v) {
-                                if (v != null) purpose = v;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: durationController,
-                              decoration: const InputDecoration(labelText: 'Expected Duration', border: OutlineInputBorder()),
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: notesController,
-                              decoration: const InputDecoration(labelText: 'Notes (Optional)', border: OutlineInputBorder()),
-                              maxLines: 2,
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
+                    loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+                    error: (e, s) => Text('Error loading staff: $e'),
                   );
                 },
-                loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
-                error: (e, s) => Text('Error loading staff: $e'),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState?.validate() ?? false) {
-                  final updatedVisit = visit.copyWith(
-                    visitorName: nameController.text.trim(),
-                    visitorPhone: phoneController.text.trim(),
-                    visitorCompany: companyController.text.trim(),
-                    hostId: selectedHost?.id ?? visit.hostId,
-                    hostName: selectedHost?.name ?? visit.hostName,
-                    purpose: purpose,
-                    expectedDuration: durationController.text.trim(),
-                    notes: notesController.text.trim(),
-                  );
-                  
-                  try {
-                    await ref.read(visitRepositoryProvider).updateVisit(updatedVisit);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      _showFeedback(context, true, 'Visit record updated successfully');
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (formKey.currentState?.validate() ?? false) {
+                      final updatedVisit = visit.copyWith(
+                        visitorName: nameController.text.trim(),
+                        visitorPhone: phoneController.text.trim(),
+                        visitorCompany: companyController.text.trim(),
+                        hostId: selectedHost?.id ?? visit.hostId,
+                        hostName: selectedHost?.name ?? visit.hostName,
+                        purpose: purpose,
+                        expectedDuration: durationController.text.trim(),
+                        notes: notesController.text.trim(),
+                        scannedIdUrl: editedScannedIdUrl,
+                      );
+                      
+                      try {
+                        await ref.read(visitRepositoryProvider).updateVisit(updatedVisit);
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          _showFeedback(context, true, 'Visit record updated successfully');
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          _showFeedback(context, false, 'Failed to update visit: $e');
+                        }
+                      }
                     }
-                  } catch (e) {
-                    if (context.mounted) {
-                      _showFeedback(context, false, 'Failed to update visit: $e');
-                    }
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-              child: const Text('Save Changes'),
-            ),
-          ],
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                  child: const Text('Save Changes'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -740,183 +758,206 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
   }
 
   void _showDetailDialog(BuildContext context, Visit visit) {
+    final nameController = TextEditingController(text: visit.visitorName);
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(40.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        String? currentScannedIdUrl = visit.scannedIdUrl;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Visitor Details',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Visitor Details',
+                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text('Visit ID: ${visit.id}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              Text('Visit ID: ${visit.id}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                              _statusChip(visit.status),
                             ],
                           ),
-                          _statusChip(visit.status),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      const Divider(),
-                      const SizedBox(height: 24),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Left info column
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildDetailField('Full Name', visit.visitorName),
-                                    _buildDetailField('Phone Number', visit.visitorPhone),
-                                    _buildDetailField('Company', visit.visitorCompany ?? '--'),
-                                    _buildDetailField('Expected Duration', visit.expectedDuration ?? '--'),
-                                    _buildDetailField('Notes', visit.notes ?? '--'),
-                                  ],
-                                ),
-                              ),
-                              // Right info column
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildDetailField('Host Name', visit.hostName),
-                                    _buildDetailField('Purpose of Visit', visit.purpose),
-                                    _buildDetailField('Check-In Time', DateFormat('MMMM dd, yyyy - hh:mm a').format(visit.checkInTime)),
-                                    _buildDetailField('Check-Out Time', visit.checkOutTime != null 
-                                        ? DateFormat('MMMM dd, yyyy - hh:mm a').format(visit.checkOutTime!) 
-                                        : '--'),
-                                    _buildDetailField('Station ID', visit.stationId),
-                                    if (visit.signatureB64 != null) ...[
-                                      const SizedBox(height: 16),
-                                      const Text('Visitor Signature', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey.shade200),
-                                          borderRadius: BorderRadius.circular(8),
-                                          color: Colors.grey.shade50,
+                          const SizedBox(height: 24),
+                          const Divider(),
+                          const SizedBox(height: 24),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Left info column
+                                  Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildDetailField('Full Name', visit.visitorName),
+                                        _buildDetailField('Phone Number', visit.visitorPhone),
+                                        _buildDetailField('Company', visit.visitorCompany ?? '--'),
+                                        _buildDetailField('Expected Duration', visit.expectedDuration ?? '--'),
+                                        _buildDetailField('Notes', visit.notes ?? '--'),
+                                      ],
+                                    ),
+                                  ),
+                                  // Right info column
+                                  Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildDetailField('Host Name', visit.hostName),
+                                        _buildDetailField('Purpose of Visit', visit.purpose),
+                                        _buildDetailField('Check-In Time', DateFormat('MMMM dd, yyyy - hh:mm a').format(visit.checkInTime)),
+                                        _buildDetailField('Check-Out Time', visit.checkOutTime != null 
+                                            ? DateFormat('MMMM dd, yyyy - hh:mm a').format(visit.checkOutTime!) 
+                                            : '--'),
+                                        _buildDetailField('Station ID', visit.stationId),
+                                        if (visit.signatureB64 != null) ...[
+                                          const SizedBox(height: 16),
+                                          const Text('Visitor Signature', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                                          const SizedBox(height: 8),
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(color: Colors.grey.shade200),
+                                              borderRadius: BorderRadius.circular(8),
+                                              color: Colors.grey.shade50,
+                                            ),
+                                            child: Image.memory(base64Decode(visit.signatureB64!), height: 80, fit: BoxFit.contain),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 24),
+                                        const Text('Scanned ID Document', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                                        const SizedBox(height: 8),
+                                        IdScannerSection(
+                                          nameController: nameController,
+                                          initialUrl: currentScannedIdUrl,
+                                          onUrlChanged: (url) async {
+                                            setDialogState(() {
+                                              currentScannedIdUrl = url;
+                                            });
+                                            try {
+                                              final updatedVisit = visit.copyWith(scannedIdUrl: url);
+                                              await ref.read(visitRepositoryProvider).updateVisit(updatedVisit);
+                                              if (context.mounted) {
+                                                _showFeedback(context, true, 'ID Document updated successfully');
+                                              }
+                                            } catch (e) {
+                                              if (context.mounted) {
+                                                _showFeedback(context, false, 'Failed to update ID Document in database: $e');
+                                              }
+                                            }
+                                          },
                                         ),
-                                        child: Image.memory(base64Decode(visit.signatureB64!), height: 80, fit: BoxFit.contain),
-                                      ),
-                                    ],
-                                    if (visit.scannedIdUrl != null) ...[
-                                      const SizedBox(height: 24),
-                                      const Text('Scanned ID Document', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
-                                      const SizedBox(height: 8),
-                                      _buildScannedIdPreview(visit.scannedIdUrl!),
-                                    ],
-                                  ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const Divider(),
+                          const SizedBox(height: 16),
+                          // Actions footer within Details
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Close'),
+                              ),
+                              const SizedBox(width: 12),
+                              // Edit Action
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(context); // Close details
+                                  _showEditDialog(context, visit);
+                                },
+                                icon: const Icon(Icons.edit, size: 16),
+                                label: const Text('Edit'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.blue,
+                                  side: const BorderSide(color: Colors.blue),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Check-in / Out Action
+                              if (visit.status == 'active')
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(context); // Close details
+                                    _confirmCheckOut(context, visit);
+                                  },
+                                  icon: const Icon(Icons.logout, size: 16),
+                                  label: const Text('Check Out'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                )
+                              else
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(context); // Close details
+                                    _confirmCheckIn(context, visit);
+                                  },
+                                  icon: const Icon(Icons.login, size: 16),
+                                  label: const Text('Check In Again'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              const SizedBox(width: 12),
+                              // Delete Action
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(context); // Close details
+                                  _confirmDelete(context, visit);
+                                },
+                                icon: const Icon(Icons.delete, size: 16),
+                                label: const Text('Delete'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      // Actions footer within Details
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Close'),
-                          ),
-                          const SizedBox(width: 12),
-                          // Edit Action
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.pop(context); // Close details
-                              _showEditDialog(context, visit);
-                            },
-                            icon: const Icon(Icons.edit, size: 16),
-                            label: const Text('Edit'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.blue,
-                              side: const BorderSide(color: Colors.blue),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Check-in / Out Action
-                          if (visit.status == 'active')
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pop(context); // Close details
-                                _confirmCheckOut(context, visit);
-                              },
-                              icon: const Icon(Icons.logout, size: 16),
-                              label: const Text('Check Out'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                foregroundColor: Colors.white,
-                              ),
-                            )
-                          else
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pop(context); // Close details
-                                _confirmCheckIn(context, visit);
-                              },
-                              icon: const Icon(Icons.login, size: 16),
-                              label: const Text('Check In Again'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-                          const SizedBox(width: 12),
-                          // Delete Action
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.pop(context); // Close details
-                              _confirmDelete(context, visit);
-                            },
-                            icon: const Icon(Icons.delete, size: 16),
-                            label: const Text('Delete'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
+                          )
                         ],
-                      )
-                    ],
-                  ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 16,
+                      right: 16,
+                      child: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                  ],
                 ),
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -933,64 +974,6 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
           Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
         ],
       ),
-    );
-  }
-
-  Widget _buildScannedIdPreview(String url) {
-    final bool isPdf = url.toLowerCase().contains('.pdf');
-
-    return Container(
-      width: double.infinity,
-      height: 140,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.secondary.withOpacity(0.08)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: isPdf
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 36),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () => js.context.callMethod('open', [url, '_blank']),
-                    icon: const Icon(Icons.open_in_new, size: 14),
-                    label: const Text('Open PDF Document', style: TextStyle(fontSize: 12)),
-                  ),
-                ],
-              ),
-            )
-          : Stack(
-              children: [
-                Positioned.fill(
-                  child: Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.broken_image_outlined, color: Colors.grey),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: FloatingActionButton.small(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    tooltip: 'Open in new tab',
-                    onPressed: () => js.context.callMethod('open', [url, '_blank']),
-                    child: const Icon(Icons.open_in_new, size: 14),
-                  ),
-                ),
-              ],
-            ),
     );
   }
 }
