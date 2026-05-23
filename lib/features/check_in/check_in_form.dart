@@ -346,7 +346,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                         const Divider(),
                         const SizedBox(height: 24),
                         IdScannerSection(
-                          visitorName: _nameController.text,
+                          nameController: _nameController,
                           onUrlChanged: (url) {
                             setState(() {
                               _scannedIdUrl = url;

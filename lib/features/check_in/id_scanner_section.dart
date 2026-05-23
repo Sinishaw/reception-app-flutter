@@ -9,12 +9,12 @@ import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 
 class IdScannerSection extends StatefulWidget {
-  final String visitorName;
+  final TextEditingController nameController;
   final ValueChanged<String?> onUrlChanged;
 
   const IdScannerSection({
     super.key,
-    required this.visitorName,
+    required this.nameController,
     required this.onUrlChanged,
   });
 
@@ -116,7 +116,7 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
   }
 
   void _onFileDetected(String name, Uint8List bytes, dynamic handle) {
-    final nameVal = widget.visitorName.trim();
+    final nameVal = widget.nameController.text.trim();
     if (nameVal.isEmpty) {
       setState(() {
         _scannerStatus = 'error';
@@ -198,7 +198,7 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
   }
 
   void _retryUpload() {
-    final nameVal = widget.visitorName.trim();
+    final nameVal = widget.nameController.text.trim();
     if (nameVal.isEmpty) {
       setState(() {
         _scannerStatus = 'error';
@@ -219,12 +219,14 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
   }
 
   void _pickFileManually() {
-    final nameVal = widget.visitorName.trim();
+    final nameVal = widget.nameController.text.trim();
     if (nameVal.isEmpty) {
-      setState(() {
-        _scannerStatus = 'error';
-        _scannerError = 'Please enter the visitor\'s full name in the form before picking a file.';
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter the visitor\'s full name in the form before picking a file.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
       return;
     }
 
@@ -239,7 +241,7 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
         final reader = html.FileReader();
         reader.readAsArrayBuffer(file);
         reader.onLoadEnd.listen((e) {
-          final bytes = reader.result as Uint8List;
+          final bytes = (reader.result as ByteBuffer).asUint8List();
           if (mounted) {
             _processAndUpload(file.name, bytes, null, nameVal);
           }
@@ -284,18 +286,29 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
                     color: AppColors.secondary,
                   ),
                 ),
-                if (_isScannerInitialized) _buildStatusBadge(),
+                if (_isScannerInitialized || _scannerStatus == 'success' || _scannerStatus == 'uploading' || _scannerStatus == 'error')
+                  _buildStatusBadge(),
               ],
             ),
             const SizedBox(height: 20),
-            if (!_isScannerInitialized)
-              _buildInitializationPrompt()
-            else
-              _buildScannerPanel(),
+            _buildActiveContent(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildActiveContent() {
+    if (_scannerStatus == 'success') {
+      return _buildPreviewCard();
+    }
+    if (_scannerStatus == 'uploading' || _scannerStatus == 'error' || _scannerStatus == 'watching') {
+      return _buildScannerPanel();
+    }
+    if (_isScannerInitialized) {
+      return _buildScannerPanel();
+    }
+    return _buildInitializationPrompt();
   }
 
   Widget _buildStatusBadge() {
