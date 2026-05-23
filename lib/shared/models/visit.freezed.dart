@@ -41,6 +41,7 @@ mixin _$Visit {
   String? get signatureB64 => throw _privateConstructorUsedError;
   String? get badgeQrData => throw _privateConstructorUsedError;
   String? get appointmentId => throw _privateConstructorUsedError;
+  String? get scannedIdUrl => throw _privateConstructorUsedError;
   String get createdBy => throw _privateConstructorUsedError;
   @RequiredTimestampConverter()
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -77,6 +78,7 @@ abstract class $VisitCopyWith<$Res> {
     String? signatureB64,
     String? badgeQrData,
     String? appointmentId,
+    String? scannedIdUrl,
     String createdBy,
     @RequiredTimestampConverter() DateTime createdAt,
   });
@@ -114,6 +116,7 @@ class _$VisitCopyWithImpl<$Res, $Val extends Visit>
     Object? signatureB64 = freezed,
     Object? badgeQrData = freezed,
     Object? appointmentId = freezed,
+    Object? scannedIdUrl = freezed,
     Object? createdBy = null,
     Object? createdAt = null,
   }) {
@@ -187,6 +190,10 @@ class _$VisitCopyWithImpl<$Res, $Val extends Visit>
                 ? _value.appointmentId
                 : appointmentId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            scannedIdUrl: freezed == scannedIdUrl
+                ? _value.scannedIdUrl
+                : scannedIdUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdBy: null == createdBy
                 ? _value.createdBy
                 : createdBy // ignore: cast_nullable_to_non_nullable
@@ -227,6 +234,7 @@ abstract class _$$VisitImplCopyWith<$Res> implements $VisitCopyWith<$Res> {
     String? signatureB64,
     String? badgeQrData,
     String? appointmentId,
+    String? scannedIdUrl,
     String createdBy,
     @RequiredTimestampConverter() DateTime createdAt,
   });
@@ -263,6 +271,7 @@ class __$$VisitImplCopyWithImpl<$Res>
     Object? signatureB64 = freezed,
     Object? badgeQrData = freezed,
     Object? appointmentId = freezed,
+    Object? scannedIdUrl = freezed,
     Object? createdBy = null,
     Object? createdAt = null,
   }) {
@@ -336,6 +345,10 @@ class __$$VisitImplCopyWithImpl<$Res>
             ? _value.appointmentId
             : appointmentId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        scannedIdUrl: freezed == scannedIdUrl
+            ? _value.scannedIdUrl
+            : scannedIdUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdBy: null == createdBy
             ? _value.createdBy
             : createdBy // ignore: cast_nullable_to_non_nullable
@@ -371,6 +384,7 @@ class _$VisitImpl implements _Visit {
     this.signatureB64,
     this.badgeQrData,
     this.appointmentId,
+    this.scannedIdUrl,
     required this.createdBy,
     @RequiredTimestampConverter() required this.createdAt,
   });
@@ -417,6 +431,8 @@ class _$VisitImpl implements _Visit {
   @override
   final String? appointmentId;
   @override
+  final String? scannedIdUrl;
+  @override
   final String createdBy;
   @override
   @RequiredTimestampConverter()
@@ -424,7 +440,7 @@ class _$VisitImpl implements _Visit {
 
   @override
   String toString() {
-    return 'Visit(id: $id, visitorId: $visitorId, visitorName: $visitorName, visitorPhone: $visitorPhone, visitorCompany: $visitorCompany, hostId: $hostId, hostName: $hostName, purpose: $purpose, notes: $notes, expectedDuration: $expectedDuration, stationId: $stationId, checkInTime: $checkInTime, checkOutTime: $checkOutTime, status: $status, signatureB64: $signatureB64, badgeQrData: $badgeQrData, appointmentId: $appointmentId, createdBy: $createdBy, createdAt: $createdAt)';
+    return 'Visit(id: $id, visitorId: $visitorId, visitorName: $visitorName, visitorPhone: $visitorPhone, visitorCompany: $visitorCompany, hostId: $hostId, hostName: $hostName, purpose: $purpose, notes: $notes, expectedDuration: $expectedDuration, stationId: $stationId, checkInTime: $checkInTime, checkOutTime: $checkOutTime, status: $status, signatureB64: $signatureB64, badgeQrData: $badgeQrData, appointmentId: $appointmentId, scannedIdUrl: $scannedIdUrl, createdBy: $createdBy, createdAt: $createdAt)';
   }
 
   @override
@@ -461,6 +477,8 @@ class _$VisitImpl implements _Visit {
                 other.badgeQrData == badgeQrData) &&
             (identical(other.appointmentId, appointmentId) ||
                 other.appointmentId == appointmentId) &&
+            (identical(other.scannedIdUrl, scannedIdUrl) ||
+                other.scannedIdUrl == scannedIdUrl) &&
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy) &&
             (identical(other.createdAt, createdAt) ||
@@ -488,6 +506,7 @@ class _$VisitImpl implements _Visit {
     signatureB64,
     badgeQrData,
     appointmentId,
+    scannedIdUrl,
     createdBy,
     createdAt,
   ]);
@@ -525,6 +544,7 @@ abstract class _Visit implements Visit {
     final String? signatureB64,
     final String? badgeQrData,
     final String? appointmentId,
+    final String? scannedIdUrl,
     required final String createdBy,
     @RequiredTimestampConverter() required final DateTime createdAt,
   }) = _$VisitImpl;
@@ -567,6 +587,8 @@ abstract class _Visit implements Visit {
   String? get badgeQrData;
   @override
   String? get appointmentId;
+  @override
+  String? get scannedIdUrl;
   @override
   String get createdBy;
   @override

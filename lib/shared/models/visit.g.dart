@@ -24,6 +24,7 @@ _$VisitImpl _$$VisitImplFromJson(Map<String, dynamic> json) => _$VisitImpl(
   signatureB64: json['signatureB64'] as String?,
   badgeQrData: json['badgeQrData'] as String?,
   appointmentId: json['appointmentId'] as String?,
+  scannedIdUrl: json['scannedIdUrl'] as String?,
   createdBy: json['createdBy'] as String,
   createdAt: const RequiredTimestampConverter().fromJson(json['createdAt']),
 );
@@ -50,6 +51,7 @@ Map<String, dynamic> _$$VisitImplToJson(
   'signatureB64': instance.signatureB64,
   'badgeQrData': instance.badgeQrData,
   'appointmentId': instance.appointmentId,
+  'scannedIdUrl': instance.scannedIdUrl,
   'createdBy': instance.createdBy,
   'createdAt': const RequiredTimestampConverter().toJson(instance.createdAt),
 };

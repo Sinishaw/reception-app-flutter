@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:js' as js;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -819,7 +820,13 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
                                         ),
                                         child: Image.memory(base64Decode(visit.signatureB64!), height: 80, fit: BoxFit.contain),
                                       ),
-                                    ]
+                                    ],
+                                    if (visit.scannedIdUrl != null) ...[
+                                      const SizedBox(height: 24),
+                                      const Text('Scanned ID Document', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                                      const SizedBox(height: 8),
+                                      _buildScannedIdPreview(visit.scannedIdUrl!),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -926,6 +933,64 @@ class _VisitLogScreenState extends ConsumerState<VisitLogScreen> {
           Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
         ],
       ),
+    );
+  }
+
+  Widget _buildScannedIdPreview(String url) {
+    final bool isPdf = url.toLowerCase().contains('.pdf');
+
+    return Container(
+      width: double.infinity,
+      height: 140,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.secondary.withOpacity(0.08)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: isPdf
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 36),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () => js.context.callMethod('open', [url, '_blank']),
+                    icon: const Icon(Icons.open_in_new, size: 14),
+                    label: const Text('Open PDF Document', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+            )
+          : Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                    errorBuilder: (context, error, stackTrace) => const Center(
+                      child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: FloatingActionButton.small(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    tooltip: 'Open in new tab',
+                    onPressed: () => js.context.callMethod('open', [url, '_blank']),
+                    child: const Icon(Icons.open_in_new, size: 14),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

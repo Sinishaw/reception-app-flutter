@@ -33,6 +33,108 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    window.idScanner = {
+      dirHandle: null,
+      knownFiles: new Set(),
+      isWatching: false,
+      pollTimer: null,
+
+      async requestPermission() {
+        try {
+          this.dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          await this.initializeKnownFiles();
+          return true;
+        } catch (e) {
+          console.error("Error requesting directory permission:", e);
+          return false;
+        }
+      },
+
+      async initializeKnownFiles() {
+        if (!this.dirHandle) return;
+        this.knownFiles.clear();
+        for await (const [name, handle] of this.dirHandle.entries()) {
+          if (handle.kind === 'file') {
+            this.knownFiles.add(name);
+          }
+        }
+      },
+
+      startWatching(onFileDetectedCallback) {
+        if (this.isWatching) return;
+        this.isWatching = true;
+
+        const poll = async () => {
+          if (!this.isWatching || !this.dirHandle) return;
+          try {
+            for await (const [name, handle] of this.dirHandle.entries()) {
+              if (handle.kind === 'file') {
+                const lowerName = name.toLowerCase();
+                const isValid = lowerName.endsWith('.pdf') || 
+                                lowerName.endsWith('.jpg') || 
+                                lowerName.endsWith('.jpeg') || 
+                                lowerName.endsWith('.png');
+
+                if (isValid && !this.knownFiles.has(name)) {
+                  this.knownFiles.add(name);
+                  const fileObj = await handle.getFile();
+                  const buffer = await fileObj.arrayBuffer();
+                  const bytesArray = Array.from(new Uint8Array(buffer));
+                  if (onFileDetectedCallback) {
+                    onFileDetectedCallback(name, bytesArray, handle);
+                  }
+                  break; // handle one file per poll tick
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Error in folder poll:", e);
+          }
+
+          if (this.isWatching) {
+            this.pollTimer = setTimeout(poll, 2500); // Poll every 2.5 seconds
+          }
+        };
+
+        poll();
+      },
+
+      stopWatching() {
+        this.isWatching = false;
+        if (this.pollTimer) {
+          clearTimeout(this.pollTimer);
+          this.pollTimer = null;
+        }
+      },
+
+      async renameFile(handle, newName) {
+        try {
+          await handle.move(newName);
+          this.knownFiles.delete(handle.name);
+          this.knownFiles.add(newName);
+          return true;
+        } catch (e) {
+          console.error("Error renaming file:", e);
+          return false;
+        }
+      },
+
+      async deleteFile(name) {
+        try {
+          if (this.dirHandle) {
+            await this.dirHandle.removeEntry(name);
+            this.knownFiles.delete(name);
+            return true;
+          }
+          return false;
+        } catch (e) {
+          console.error("Error deleting file:", e);
+          return false;
+        }
+      }
+    };
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

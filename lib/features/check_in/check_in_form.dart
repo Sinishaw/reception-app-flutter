@@ -11,6 +11,7 @@ import '../notifications/notification_service.dart';
 import '../pairing/station_provider.dart';
 import '../../shared/services/floor_service.dart';
 import '../tablet_display/session_provider.dart';
+import 'id_scanner_section.dart';
 
 class CheckInForm extends ConsumerStatefulWidget {
   final Appointment? initialAppointment;
@@ -35,6 +36,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
   String? _appointmentId;
 
   bool _isWaitingForSignature = false;
+  String? _scannedIdUrl;
 
   @override
   void initState() {
@@ -340,6 +342,17 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
                             ),
                           ),
                         ],
+                        const SizedBox(height: 32),
+                        const Divider(),
+                        const SizedBox(height: 24),
+                        IdScannerSection(
+                          visitorName: _nameController.text,
+                          onUrlChanged: (url) {
+                            setState(() {
+                              _scannedIdUrl = url;
+                            });
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -511,6 +524,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
         createdAt: DateTime.now(),
         signatureB64: session.signatureB64,
         appointmentId: _appointmentId,
+        scannedIdUrl: _scannedIdUrl,
         notes: _selectedFloor != null ? 'Floor: $_selectedFloor' : null,
       );
 
@@ -561,6 +575,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
          _floorController.clear();
          _selectedFloor = null;
          _selectedHost = null;
+         _scannedIdUrl = null;
       });
 
       if (context.mounted) {
@@ -603,6 +618,7 @@ class _CheckInFormState extends ConsumerState<CheckInForm> {
       _floorController.clear();
       _selectedFloor = null;
       _selectedHost = null;
+      _scannedIdUrl = null;
       _purpose = 'Meeting';
     });
     if (context.mounted) {

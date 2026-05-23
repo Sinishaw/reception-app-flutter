@@ -27,6 +27,7 @@ class Visit with _$Visit {
     String? signatureB64,
     String? badgeQrData,
     String? appointmentId,
+    String? scannedIdUrl,
     required String createdBy,
     @RequiredTimestampConverter() required DateTime createdAt,
   }) = _Visit;
