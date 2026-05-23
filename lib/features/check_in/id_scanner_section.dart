@@ -146,13 +146,15 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
       final cleanName = visitorName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
       final newName = '${cleanName}_$timestamp$ext';
 
-      // 2. Rename file locally using JS interop move()
-      final bool renameSuccess = await js_util.promiseToFuture(
-        js.context['idScanner'].callMethod('renameFile', [handle, newName])
-      );
+      // 2. Rename file locally using JS interop move() if it's a watched folder file
+      if (handle != null) {
+        final bool renameSuccess = await js_util.promiseToFuture(
+          js.context['idScanner'].callMethod('renameFile', [handle, newName])
+        );
 
-      if (!renameSuccess) {
-        throw Exception('Unable to rename scan file locally in directory.');
+        if (!renameSuccess) {
+          throw Exception('Unable to rename scan file locally in directory.');
+        }
       }
 
       // 3. Upload bytes to Firebase Storage
@@ -167,10 +169,12 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // 4. Delete renamed local file using JS interop removeEntry()
-      await js_util.promiseToFuture(
-        js.context['idScanner'].callMethod('deleteFile', [newName])
-      );
+      // 4. Delete renamed local file using JS interop removeEntry() if it's a watched folder file
+      if (handle != null) {
+        await js_util.promiseToFuture(
+          js.context['idScanner'].callMethod('deleteFile', [newName])
+        );
+      }
 
       setState(() {
         _scannerStatus = 'success';
