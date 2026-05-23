@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
@@ -202,15 +203,45 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
       return;
     }
 
-    if (_scannedFileBytes != null && _lastFileHandle != null && _scannedFileName != null) {
-      _processAndUpload(_scannedFileName!, _scannedFileBytes!, _lastFileHandle!, nameVal);
+    if (_scannedFileBytes != null && _scannedFileName != null) {
+      _processAndUpload(_scannedFileName!, _scannedFileBytes!, _lastFileHandle, nameVal);
     } else {
       // Fallback: reset state to watching
       setState(() {
-        _scannerStatus = 'watching';
+        _scannerStatus = _isScannerInitialized ? 'watching' : 'idle';
         _scannerError = null;
       });
     }
+  }
+
+  void _pickFileManually() {
+    final nameVal = widget.visitorName.trim();
+    if (nameVal.isEmpty) {
+      setState(() {
+        _scannerStatus = 'error';
+        _scannerError = 'Please enter the visitor\'s full name in the form before picking a file.';
+      });
+      return;
+    }
+
+    final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = '.pdf,.png,.jpg,.jpeg';
+    uploadInput.click();
+    
+    uploadInput.onChange.listen((e) {
+      final files = uploadInput.files;
+      if (files != null && files.isNotEmpty) {
+        final file = files[0];
+        final reader = html.FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onLoadEnd.listen((e) {
+          final bytes = reader.result as Uint8List;
+          if (mounted) {
+            _processAndUpload(file.name, bytes, null, nameVal);
+          }
+        });
+      }
+    });
   }
 
   void _clearScan() {
@@ -359,6 +390,18 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           ),
+          const SizedBox(height: 16),
+          const Text('— OR —', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: _pickFileManually,
+            icon: const Icon(Icons.upload_file, size: 18),
+            label: const Text('Choose File manually'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              textStyle: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
@@ -400,6 +443,19 @@ class _IdScannerSectionState extends State<IdScannerSection> with SingleTickerPr
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.secondary.withOpacity(0.6),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('— OR —', style: TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: _pickFileManually,
+                icon: const Icon(Icons.upload_file, size: 14),
+                label: const Text('Choose File manually', style: TextStyle(fontSize: 12)),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
             ],
